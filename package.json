@@ -1,0 +1,38 @@
+{
+  "name": "epjson",
+  "description": "Extended an Extensible and Pacific JSON based in EJSON",
+  "version": "0.0.1",
+  "author": "Codenautas <codenautas@googlegroups.com>",
+  "repository": "codenautas/epjson",
+  "license": "MIT",
+  "main": "index.js",
+  "files": [
+    "index.js"
+  ],
+  "dependencies": {
+  },
+  "devDependencies": {
+    "deep-equal": "1.0.1",
+    "expect.js": "~0.3.1",
+    "istanbul": "~0.4.5",
+    "mocha": "~3.0.2"
+  },
+  "engines": {
+    "node": ">= 0.12"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec --bail --check-leaks test/",
+    "test-nc": "mocha --reporter spec --bail --check-leaks --no-colors test/",
+    "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
+    "start": "node example/server.js"
+  },
+  "qa-control": {
+    "package-version": "0.3.0",
+    "coverage": 100,
+    "run-in": "both",
+    "stability": "extending",
+    "type": "lib",
+    "ecmaVersion": 6
+  }
+}
