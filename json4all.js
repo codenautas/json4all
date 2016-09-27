@@ -64,7 +64,10 @@ function InternalValueForUndefined(){ throw new Error('this is not a function');
 json4all.replacer = function replacer(key, value){
     var realValue=this===null?null:this[key];
     if(this && this instanceof Array || realValue && realValue instanceof Array){
-        console.log(['REP'], key, value, realValue, typeof realValue);
+        // console.log(['REP'], key, value, realValue, typeof realValue);
+    }
+    if(realValue===InternalValueForUndefined){
+        this[key]=undefined;
     }
     if(realValue===undefined || typeof realValue === "undefined" || realValue!==null && realValue instanceof Function){
         return {$special: "undefined"};
@@ -78,13 +81,15 @@ json4all.replacer = function replacer(key, value){
     if('$special' in realValue || '$escape' in realValue){
         return {$escape: realValue};
     }
-    if(isIE && realValue!==null && realValue instanceof Array){
-        for(var i=0; i<realValue.length; i++){
-            if(typeof realValue[i] === 'undefined'){
-                realValue[i] = InternalValueForUndefined;
+    if(isIE && realValue!==null){
+        if(realValue instanceof Array){
+            for(var i=0; i<realValue.length; i++){
+                if(typeof realValue[i] === 'undefined'){
+                    realValue[i] = InternalValueForUndefined;
+                }
             }
+            return realValue;
         }
-        return realValue;
     }
     if(realValue!==null && realValue instanceof Object){
         var typeName = constructorName(realValue);

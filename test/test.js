@@ -88,12 +88,12 @@ describe("JSON4all",function(){
                     expect(decoded).to.eql(expected);
                 }catch(err){
                     try{
-                        var obtainedPart=decoded .list1[0].one.two;
-                        var expectedPart=expected.list1[0].one.two;
+                        var obtainedPart=decoded [1];
+                        var expectedPart=expected[1];
                         expect(obtainedPart).to.eql(expectedPart);
                         console.log('--partes iguales');
                     }catch(err){
-                        console.log('--partes distintas',expectedPart,expectedPart);
+                        console.log('--partes distintas',obtainedPart,expectedPart,obtainedPart==expectedPart,obtainedPart===expectedPart,typeof obtainedPart,typeof expectedPart);
                     }
                     throw err;
                 }
