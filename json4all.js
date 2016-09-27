@@ -24,6 +24,19 @@
 var json4all = {};
 /*jshint +W004 */
 
+function functionName(fun) {
+    if(fun){
+        var name = fun.name;
+        if(!name){
+            return fun.toString().replace(/^\s*function\s*([^(]*)\((.|\s)*$/i,'$1');
+        }
+        return name;
+    }
+};
+
+function constructorName(obj) {
+    return functionName(obj.constructor);
+};
 
 var types={
     Date  : {
@@ -59,7 +72,7 @@ json4all.replacer = function replacer(key, value){
         return {$escape: realValue};
     }
     if(realValue!==null && realValue instanceof Object){
-        var typeName = realValue.constructor.name;
+        var typeName = constructorName(realValue);
         if(types[typeName]){
             return {$special:typeName, $value: types[typeName].deconstruct(realValue)};
         }
@@ -91,7 +104,7 @@ json4all.parse = function parse(text){
 };
 
 json4all.addType = function addType(typeConstructor){
-    types[typeConstructor.name]={
+    types[functionName(typeConstructor)]={
         construct: function construct(value){
             return typeConstructor.JSON4reviver(value);
         },
