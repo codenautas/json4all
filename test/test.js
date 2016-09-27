@@ -67,7 +67,6 @@ describe("JSON4all",function(){
         it("fixture: "+JSON.stringify(fixture),function(){
             var encoded=JSON4all.stringify(fixture.value);
             if('expectEncode' in fixture){
-                console.log([],encoded)
                 expect(encoded).to.eql(fixture.expectEncode);
             }
             var decoded=JSON4all.parse(encoded);
