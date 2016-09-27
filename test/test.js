@@ -71,6 +71,7 @@ describe("JSON4all",function(){
         if(fixture.skip) return;
         var withError=false;
         it("fixture "+fixture.name+": "+JSON.stringify(fixture),function(){
+            //if(runningInBrowser) { console.log("FIXTURE", fixture.name); }
             var encoded=JSON4all.stringify(fixture.value);
             //console.log(fixture.name+": DEC", JSON.stringify(decoded)); console.log(fixture.name+": EXP", JSON.stringify(expected));
             if('expectEncode' in fixture){

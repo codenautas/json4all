@@ -83,13 +83,13 @@ json4all.replacer = function replacer(key, value){
 json4all.reviver = function reviver(key, value){
     if(key==='$escape'){
         return value;
-    }else if(value!==null && value.$special){
+    }else if(value!==null && typeof value !== 'undefined' && value.$special){
         if(types[value.$special]){
             return new types[value.$special].construct(value.$value);
         }else if(value.$special=='undefined'){
             return undefined;
         }
-    }else if(value!==null && value.$escape){
+    }else if(value!==null && typeof value !== 'undefined' && value.$escape){
         return value.$escape;
     }
     return value;
