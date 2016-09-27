@@ -90,8 +90,24 @@ describe("JSON4all",function(){
                 throw err;
             }
             var diffs = selfExplain.assert.allDifferences(decoded,expected);
-            var eql=!!diffs;
-            expect(eql).to.not.be.ok();
+            var eql=!diffs;
+            if(!eql){ 
+                console.log("--- DIFFS", diffs); 
+            }
+            expect(eql).to.not.be();
+            try{
+                expect(decoded).to.eql(expected);
+            }catch(err){
+                var obtainedPart=decoded .list1[0].one.two;
+                var expectedPart=expected.list1[0].one.two;
+                try{
+                    expect(obtainedPart).to.eql(expectedPart);
+                    console.log('--partes iguales');
+                }catch(err){
+                    console.log('--partes distintas',expectedPart,expectedPart);
+                }
+                throw err;
+            }
             if('check' in fixture){
                 expect(fixture.check(decoded)).to.ok();
             }
