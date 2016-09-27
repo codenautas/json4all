@@ -17,10 +17,10 @@ function Point(x, y, z) {
     this.z     = z;
 }
 // For EJSON
-Point.prototype.typeName=function(){ return "Point";}
-Point.prototype.toJSONValue=function(){ return JSON.stringify(this); }
-Point.EJSONFactory=function(s){ var o=JSON.parse(s); return new Point(o.x, o.y, o.z); }
-EPJSON.addType("Point", Point.EJSONFactory);
+Point.prototype.toJSON4replacer=function(){ return {x:this.x, y:this.y, z:this.z}; }
+Point.JSON4reviver=function(o){ return new Point(o.x, o.y, o.z); }
+
+EPJSON.addType(Point);
 
 var fixtures=[
     {name:'strDate'   ,value: "2012-01-02",              },
@@ -29,33 +29,35 @@ var fixtures=[
     {name:'partes'    ,value: [parte, parte],            },
     {name:'rombo'     ,value: {a:parte, b:parte},        },
     {name:'array'     ,value: [1,"2", false],            },
-    {name:'fecha'     ,value: new Date(1969, 5-1, 6)     , expectEncode: '{"$special":"Date","$date":-20725200000}', check:function(o){ return o instanceof Date; }},
+    {name:'fecha'     ,value: new Date(1969, 5-1, 6)     , expectEncode: '{"$special":"Date","$value":-20725200000}', check:function(o){ return o instanceof Date; }},
     {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}, check:function(o){ return o.f instanceof Date; }},
     {name:'bigNumber' ,value: 12345678901234567890,      },
     {name:'bool'      ,value: true,                      },
     {name:'null'      ,value: null,                      },
     {name:'undef'     ,value: undefined                  , expectedEncode: '{"$undefined": true}'},
     {name:'{undef}'   ,value: {a:undefined}, expected:{} },
-    {name:'regex'     ,value: /hola/,                    },
+    {name:'regex'     ,value: /hola/ig,                  },
+    {name:'{regex}'   ,value: {r:/hola/}                 , check:function(o){ return o.r instanceof RegExp; }},
     {name:'fun'       ,value: function(x){ return x+1; } , expected: undefined},
     {name:'{fun}'     ,value: {f:function(x){ return x+1; }}, expected:{} },
     {name:'complex'   ,
         value:{list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:new Date()},_:'333'}],f:function(){return 3;}},
      expected:{list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:new Date()},_:'333'}]                        },
     },
-    {name:'h1-EPJSON' ,value: {d:{$special:'Date',$date:1456887600000},u:{$special:'undefined'}}, 
-                       expectEncode: JSON.stringify({d:{$escape:{$special:'Date',$date:1456887600000}},u:{$escape:{$special:'undefined'}}}),
+    {name:'h1-EPJSON' ,value: {d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}, 
+                       expectEncode: JSON.stringify({d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}),
     },
-    {name:'h2-EPJSON' ,value: {$escape:{d:{$special:'Date',$date:1456887600000},u:{$special:'undefined'}}},
-                       expectEncode: JSON.stringify({$escape:{$escape:{d:{$escape:{$special:'Date',$date:1456887600000}},u:{$escape:{$special:'undefined'}}}}}),
+    {name:'h2-EPJSON' ,value: {$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}},
+                       expectEncode: JSON.stringify({$escape:{$escape:{d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}}}),
     },
-    {name:'h3-EPJSON' ,value: {$escape:{$escape:{d:{$special:'Date',$date:1456887600000},u:{$special:'undefined'},e:{$escape:true}}}}},
+    {name:'h3-EPJSON' ,value: {$escape:{$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'},e:{$escape:true}}}}},
     {name:'Point'     ,value: new Point(1,2,3.3), 
                        check:function(o){ return o instanceof Point; } , 
-                       expectEncode:'{"$type":"Point","$value":"{\"klass\":\"Point\",\"x\":1,\"y\":2,\"z\":3.3}"}'
+                       expectEncode:'{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}'
     },
-    {name:'hack-EJSON',value: {"$type":"Point","$value":"{\"klass\":\"Point\",\"x\":1,\"y\":2,\"z\":3.3}"} },
-    {name:'hack2EJSON',value: {"$escape":{"$type":"Point","$value":"{\"klass\":\"Point\",\"x\":1,\"y\":2,\"z\":3.3}"}} },
+    {name:'hack-EJSON',value: {"$special":"Point","$value":{"x":1,"y":2,"z":3.3}} },
+    {name:'hack2EJSON',value: {$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}} },
+    {name:'hack3EJSON',value: {$escape:{$escape:{$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}}}} },
 ];
 
 describe("epjson",function(){

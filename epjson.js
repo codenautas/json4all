@@ -2,13 +2,30 @@
 
 var epjson = {};
 
+var types={
+    Date  : {
+        construct: function construct(value){ 
+            return new Date(value); 
+        }, 
+        deconstruct: function deconstruct(o){
+            return o.getTime();
+        }
+    },
+    RegExp: {
+        construct: function construct(value){ 
+            return new RegExp(value.source, value.flags); 
+        }, 
+        deconstruct: function deconstruct(o){
+            return {source: o.source, flags: o.toString().substring(o.toString().lastIndexOf('/')+1)}
+        }
+    }
+};
+
 var SymbolInternal='394fjasifqwenvnv';
 
 function SymbolInternalx(){
     throw new Error('this is a symbol, not a function');
 }
-
-var tooMuch=10;
 
 epjson.replacer = function replacer(key, value){
     // if(key==='$special'){
@@ -36,30 +53,14 @@ epjson.replacer = function replacer(key, value){
     if('$special' in realValue || '$escape' in realValue /*&& realValue.$internal!==SymbolInternal*/){
         console.log("$$$$SPECIAL", realValue)
         // return JSON.stringify({$escape: value});
-        if(!tooMuch--){
-            throw new Error('too much');
-        }
         return {$escape: realValue/*, $internal:SymbolInternal*/};
     }
-    if(realValue!=null && realValue instanceof Date){
-        console.log('xxx THIS KEY replacer',key,value, typeof value);
-        return {$special:'Date', $date: realValue.getTime()/*, $internal:SymbolInternal*/};
-    }
-    return value;
-}
-
-epjson.reviver2 = function reviver(key, value){
-    const prefix = '{"$special":';
-    console.log(['xxx reviver'],key,value, typeof value, '==>', typeof value === 'string'?value.substring(0,prefix.length):'');
-    if(typeof value === 'string' && value.substring(0,prefix.length)===prefix){
-        var specialObject = epjson.parse(value);
-        console.log('ZZZZZ special',specialObject)
-        if(specialObject.$special=='Date'){
-            return new Date(value.$date);
-        }else if(specialObject.$special=='undefined'){
-            return undefined;
+    if(realValue!=null && realValue instanceof Object){
+        var typeName = realValue.constructor.name;
+        if(types[typeName]){
+            console.log('xxx THIS KEY replacer',key,value, typeof value, typeName);
+            return {$special:typeName, $value: types[typeName].deconstruct(realValue)/*, $internal:SymbolInternal*/};
         }
-        return specialObject;
     }
     return value;
 }
@@ -67,20 +68,17 @@ epjson.reviver2 = function reviver(key, value){
 epjson.reviver = function reviver(key, value){
     console.log('xxx reviver',key,value, typeof value);
     if(key==='$escape'){
-        // value.$internal='true';
         return value;
     }else if(value!=null && value.$special){
-        if(value.$special=='Date'){
-            return new Date(value.$date);
+        if(types[value.$special]){
+            return new types[value.$special].construct(value.$value);
+        // }else if(value.$special=='Date'){
+        //     return new Date(value.$value);
         }else if(value.$special=='undefined'){
             return undefined;
         }
     }else if(value!=null && value.$escape){
-        if(value.$escape.$internal || true ){
-            delete value.$escape.$internal;
-            return value.$escape;
-        }
-        return value;
+        return value.$escape;
     }
     return value;
 }
@@ -95,8 +93,15 @@ epjson.parse = function parse(text){
     return JSON.parse(text, epjson.reviver);
 }
 
-epjson.addType = function addType(typeName, factory){
-    
+epjson.addType = function addType(typeConstructor){
+    types[typeConstructor.name]={
+        construct: function construct(value){
+            return typeConstructor.JSON4reviver(value);
+        },
+        deconstruct: function deconstruct(o){
+            return o.toJSON4replacer();
+        }
+    };
 }
 
 module.exports = epjson;
