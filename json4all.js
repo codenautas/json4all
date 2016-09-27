@@ -1,6 +1,29 @@
 "use strict";
 
-var JSON4all = {};
+(function codenautasModuleDefinition(root, name, factory) {
+    /* global define */
+    /* istanbul ignore next */
+    if(typeof root.globalModuleName !== 'string'){
+        root.globalModuleName = name;
+    }
+    /* istanbul ignore next */
+    if(typeof exports === 'object' && typeof module === 'object'){
+        module.exports = factory();
+    }else if(typeof define === 'function' && define.amd){
+        define(factory);
+    }else if(typeof exports === 'object'){
+        exports[root.globalModuleName] = factory();
+    }else{
+        root[root.globalModuleName] = factory();
+    }
+    root.globalModuleName = null;
+})(/*jshint -W040 */this, 'json4all', function() {
+/*jshint +W040 */
+
+/*jshint -W004 */
+var json4all = {};
+/*jshint +W004 */
+
 
 var types={
     Date  : {
@@ -21,7 +44,7 @@ var types={
     }
 };
 
-JSON4all.replacer = function replacer(key, value){
+json4all.replacer = function replacer(key, value){
     var realValue=this==null?null:this[key];
     if(realValue===undefined || realValue!==null && realValue instanceof Function){
         return {$special: "undefined"};
@@ -44,7 +67,7 @@ JSON4all.replacer = function replacer(key, value){
     return value;
 }
 
-JSON4all.reviver = function reviver(key, value){
+json4all.reviver = function reviver(key, value){
     if(key==='$escape'){
         return value;
     }else if(value!=null && value.$special){
@@ -59,15 +82,15 @@ JSON4all.reviver = function reviver(key, value){
     return value;
 }
 
-JSON4all.stringify = function stringify(value){
-    return JSON.stringify(value, JSON4all.replacer);
+json4all.stringify = function stringify(value){
+    return JSON.stringify(value, json4all.replacer);
 }
 
-JSON4all.parse = function parse(text){
-    return JSON.parse(text, JSON4all.reviver);
+json4all.parse = function parse(text){
+    return JSON.parse(text, json4all.reviver);
 }
 
-JSON4all.addType = function addType(typeConstructor){
+json4all.addType = function addType(typeConstructor){
     types[typeConstructor.name]={
         construct: function construct(value){
             return typeConstructor.JSON4reviver(value);
@@ -78,4 +101,6 @@ JSON4all.addType = function addType(typeConstructor){
     };
 }
 
-module.exports = JSON4all;
+return json4all;
+
+});

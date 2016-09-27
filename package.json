@@ -1,9 +1,9 @@
 {
-  "name": "epjson",
+  "name": "json4all",
   "description": "Extended an Extensible and Pacific JSON based in EJSON",
   "version": "0.0.1",
   "author": "Codenautas <codenautas@googlegroups.com>",
-  "repository": "codenautas/epjson",
+  "repository": "codenautas/json4all",
   "license": "MIT",
   "main": "json4all.js",
   "files": [],
