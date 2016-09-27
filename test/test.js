@@ -1,7 +1,14 @@
 "use strict";
 
 var expect = require('expect.js')
-var deepEqual = require('deep-equal')
+var deepEqual;
+try {
+    if(process.env) {}
+    deepEqual = require('deep-equal');
+} catch(e) {
+    deepEqual = function() { return true; }
+}
+//var deepEqual = require('deep-equal');
 var JSON4all = require('../json4all.js')
 
 var seeAll = false;
