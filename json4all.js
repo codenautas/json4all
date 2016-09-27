@@ -80,16 +80,20 @@ json4all.replacer = function replacer(key, value){
     return value;
 };
 
+function valueHasProperty(value, propName) {
+    return value!==null && typeof value !== 'undefined' && value.hasOwnProperty(propName);
+}
+
 json4all.reviver = function reviver(key, value){
     if(key==='$escape'){
         return value;
-    }else if(value!==null && typeof value !== 'undefined' && value.$special){
+    }else if(valueHasProperty(value,'$special')){
         if(types[value.$special]){
             return new types[value.$special].construct(value.$value);
         }else if(value.$special=='undefined'){
             return undefined;
         }
-    }else if(value!==null && typeof value !== 'undefined' && value.$escape){
+    }else if(valueHasProperty(value,'$escape')){
         return value.$escape;
     }
     return value;
