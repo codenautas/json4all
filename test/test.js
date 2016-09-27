@@ -38,8 +38,8 @@ var fixtures=[
     {name:'bool'      ,value: true,                        },
     {name:'null'      ,value: null,                        },
     {name:'undef'     ,value: undefined                     , expectEncode: '{"$special":"undefined"}'},
-    {name:'{undef}'   ,value: {a:undefined}, expected:{}   },
-    {name:'[undef]'   ,value: [0,undefined,"0",null,false]  , expectEncode: '[0,{"$special":"undefined"},"0",null,false]', skipExpectedJsInBrowser:runningInBrowser},
+    {name:'{undef}'   ,value: {a:undefined}, expected:{}   , expectEncode: '{"a":{"$special":"undefined"}}'},
+    {name:'[undef]'   ,value: [0,undefined,"0",null,false] , expectEncode: '[0,{"$special":"undefined"},"0",null,false]', skipExpectedJsInBrowser:runningInBrowser},
     {name:'regex'     ,value: /hola/ig,                    },
     {name:'{regex}'   ,value: {r:/hola/}                    , check:function(o){ return o.r instanceof RegExp; }},
     {name:'fun'       ,value: function(x){ return x+1; }    , expected: undefined},
@@ -74,7 +74,7 @@ describe("JSON4all",function(){
         it("fixture "+fixture.name+": "+JSON.stringify(fixture),function(){
             //if(runningInBrowser) { console.log("FIXTURE", fixture.name); }
             var encoded=JSON4all.stringify(fixture.value);
-            //console.log(fixture.name+": DEC", JSON.stringify(decoded)); console.log(fixture.name+": EXP", JSON.stringify(expected));
+            console.log(["ENC"], encoded, window.navigator.userAgent);
             if('expectEncode' in fixture){
                 expect(encoded).to.eql(fixture.expectEncode);
             }
