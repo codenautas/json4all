@@ -46,8 +46,8 @@
     "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
     "start": "node example/server.js",
     "test-cli": "node server/karma-server.js --karma karma.conf.js --single-run",
-    "test-cli-ff": "node server/karma-server.js --karma karma.conf.js --single-run --browsers Firefox",
-    "test-cli-loop": "node server/karma-server.js --karma karma.conf.js"
+    "test-cli-h": "node server/karma-server.js --karma karma.conf.js",
+    "test-cli-ff": "npm run test-cli -- --browsers Firefox"
   },
   "qa-control": {
     "package-version": "0.3.0",

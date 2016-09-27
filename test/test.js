@@ -26,38 +26,40 @@ var today = new Date();
 var runningInBrowser = typeof window !== 'undefined';
 
 var fixtures=[
-    {name:'strDate'   ,value: "2012-01-02",              },
-    {name:'strStr'    ,value: "hola",                    },
-    {name:'parte'     ,value: parte,                     },
-    {name:'partes'    ,value: [parte, parte],            },
-    {name:'rombo'     ,value: {a:parte, b:parte},        },
-    {name:'array'     ,value: [1,"2", false],            },
-    {name:'fecha'     ,value: new Date(1969, 5-1, 6)     , expectEncode: '{"$special":"Date","$value":-20725200000}', check:function(o){ return o instanceof Date; }},
-    {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}, check:function(o){ return o.f instanceof Date; }},
-    {name:'bigNumber' ,value: 12345678901234567890,      },
-    {name:'bool'      ,value: true,                      },
-    {name:'null'      ,value: null,                      },
-    {name:'undef'     ,value: undefined                  , expectedEncode: '{"$undefined": true}'},
-    {name:'{undef}'   ,value: {a:undefined}, expected:{} },
-    {name:'regex'     ,value: /hola/ig,                  },
-    {name:'{regex}'   ,value: {r:/hola/}                 , check:function(o){ return o.r instanceof RegExp; }},
-    {name:'fun'       ,value: function(x){ return x+1; } , expected: undefined},
+    {name:'strDate'   ,value: "2012-01-02",                },
+    {name:'strStr'    ,value: "hola",                      },
+    {name:'parte'     ,value: parte,                       },
+    {name:'partes'    ,value: [parte, parte],              },
+    {name:'rombo'     ,value: {a:parte, b:parte},          },
+    {name:'array'     ,value: [1,"2", false],              },
+    {name:'fecha'     ,value: new Date(1969, 5-1, 6)        , expectEncode: '{"$special":"Date","$value":-20725200000}', check:function(o){ return o instanceof Date; }},
+    {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}   , check:function(o){ return o.f instanceof Date; }},
+    {name:'bigNumber' ,value: 12345678901234567890,        },
+    {name:'bool'      ,value: true,                        },
+    {name:'null'      ,value: null,                        },
+    {name:'undef'     ,value: undefined                     , expectedEncode: '{"$undefined": true}'},
+    {name:'{undef}'   ,value: {a:undefined}, expected:{}   },
+    {name:'regex'     ,value: /hola/ig,                    },
+    {name:'{regex}'   ,value: {r:/hola/}                    , check:function(o){ return o.r instanceof RegExp; }},
+    {name:'fun'       ,value: function(x){ return x+1; }    , expected: undefined},
     {name:'{fun}'     ,value: {f:function(x){ return x+1; }}, expected:{} },
     {name:'complex'   ,
         value:{list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:today},_:'333'}],f:function(){return 3;}},
-     expected:{list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:today},_:'333'}]                        },
-     skipExpectedJsInBrowser:runningInBrowser
+        expected:{list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:today},_:'333'}]                        },
+        skipExpectedJsInBrowser:runningInBrowser
     },
     {name:'h1-JSON4all' ,value: {d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}, 
-                       expectEncode: JSON.stringify({d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}),
+        expectEncode: JSON.stringify({d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}),
+        skipExpectedJsInBrowser:runningInBrowser
     },
     {name:'h2-JSON4all' ,value: {$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}},
-                       expectEncode: JSON.stringify({$escape:{$escape:{d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}}}),
+        expectEncode: JSON.stringify({$escape:{$escape:{d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}}}),
+        skipExpectedJsInBrowser:runningInBrowser
     },
     {name:'h3-JSON4all' ,value: {$escape:{$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'},e:{$escape:true}}}}},
     {name:'Point'     ,value: new Point(1,2,3.3), 
-                       check:function(o){ return o instanceof Point; } , 
-                       expectEncode:'{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}'
+        check:function(o){ return o instanceof Point; } , 
+        expectEncode:'{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}'
     },
     {name:'hack-EJSON',value: {"$special":"Point","$value":{"x":1,"y":2,"z":3.3}} },
     {name:'hack2EJSON',value: {$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}} },
@@ -66,7 +68,7 @@ var fixtures=[
 
 describe("JSON4all",function(){
     fixtures.forEach(function(fixture){
-        if(fixture.skip || fixture.skipExpectedJsInBrowser) return;
+        if(fixture.skip) return;
         var withError=false;
         it("fixture "+fixture.name+": "+JSON.stringify(fixture),function(){
             var encoded=JSON4all.stringify(fixture.value);
@@ -76,37 +78,24 @@ describe("JSON4all",function(){
             }
             var decoded=JSON4all.parse(encoded);
             var expected = 'expected' in fixture?fixture.expected:fixture.value;
-            try{
-                expect(decoded).to.eql(expected);
-            }catch(err){
-                var obtainedPart=decoded .list1[0].one.two;
-                var expectedPart=expected.list1[0].one.two;
-                try{
-                    expect(obtainedPart).to.eql(expectedPart);
-                    console.log('--partes iguales');
-                }catch(err){
-                    console.log('--partes distintas',expectedPart,expectedPart);
-                }
-                throw err;
-            }
             var diffs = selfExplain.assert.allDifferences(decoded,expected);
             var eql=!diffs;
-            if(!eql){ 
-                console.log("--- DIFFS", diffs); 
-            }
+            if(!eql){ console.log("--- DIFFS", diffs); }
             expect(eql).to.not.be();
-            try{
-                expect(decoded).to.eql(expected);
-            }catch(err){
-                var obtainedPart=decoded .list1[0].one.two;
-                var expectedPart=expected.list1[0].one.two;
+            if(! fixture.skipExpectedJsInBrowser) {
                 try{
-                    expect(obtainedPart).to.eql(expectedPart);
-                    console.log('--partes iguales');
+                    expect(decoded).to.eql(expected);
                 }catch(err){
-                    console.log('--partes distintas',expectedPart,expectedPart);
+                    var obtainedPart=decoded .list1[0].one.two;
+                    var expectedPart=expected.list1[0].one.two;
+                    try{
+                        expect(obtainedPart).to.eql(expectedPart);
+                        console.log('--partes iguales');
+                    }catch(err){
+                        console.log('--partes distintas',expectedPart,expectedPart);
+                    }
+                    throw err;
                 }
-                throw err;
             }
             if('check' in fixture){
                 expect(fixture.check(decoded)).to.ok();
