@@ -22,7 +22,7 @@ module.exports = function(config, preConfig) {
       'node_modules/express-useragent/lib/express-useragent.js',
       //'node_modules/self-explain/node_modules/esprima/esprima.js',
       //'node_modules/self-explain/dist/escodegen.browser.js',
-      //'node_modules/self-explain/lib/self-explain.js',
+      'node_modules/self-explain/lib/self-explain.js',
       //'lib/*.js',
       'json4all.js',
       'test/*.js'

@@ -1,14 +1,8 @@
 "use strict";
 
 var expect = require('expect.js')
-var deepEqual;
-try {
-    if(process.env) {}
-    deepEqual = require('deep-equal');
-} catch(e) {
-    deepEqual = function() { return true; }
-}
-//var deepEqual = require('deep-equal');
+//var selfExplain = require('self-explain')
+var deepEqual = require('deep-equal');
 var JSON4all = require('../json4all.js')
 
 var seeAll = false;
@@ -71,7 +65,7 @@ describe("JSON4all",function(){
     fixtures.forEach(function(fixture){
         if(fixture.skip) return;
         var withError=false;
-        it("fixture: "+JSON.stringify(fixture),function(){
+        it("fixture "+fixture.name+": "+JSON.stringify(fixture),function(){
             var encoded=JSON4all.stringify(fixture.value);
             if('expectEncode' in fixture){
                 expect(encoded).to.eql(fixture.expectEncode);
@@ -79,6 +73,14 @@ describe("JSON4all",function(){
             var decoded=JSON4all.parse(encoded);
             expect(decoded).to.eql('expected' in fixture?fixture.expected:fixture.value);
             var eql=deepEqual(decoded,'expected' in fixture?fixture.expected:fixture.value);
+            /*
+            var expected = ('expected' in fixture?fixture.expected:fixture.value);
+            console.log("DEC", typeof decoded, decoded); console.log("EXP", typeof expected, expected);
+            var diff = selfExplain.assert.allDifferences(decoded,expected);
+            console.log("DIFF", JSON.stringify(diff));
+            var eql=diff===null;
+            var eql=selfExplain.assert.allDifferences(decoded,('expected' in fixture?fixture.expected:fixture.value))===null;
+            */
             expect(eql).to.ok();
             if('check' in fixture){
                 expect(fixture.check(decoded)).to.ok();
