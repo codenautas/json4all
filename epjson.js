@@ -33,7 +33,7 @@ epjson.replacer = function replacer(key, value){
     if(key==='$escape'){
         return value;
     }
-    if('$special' in realValue /*&& realValue.$internal!==SymbolInternal*/){
+    if('$special' in realValue || '$escape' in realValue /*&& realValue.$internal!==SymbolInternal*/){
         console.log("$$$$SPECIAL", realValue)
         // return JSON.stringify({$escape: value});
         if(!tooMuch--){
@@ -66,14 +66,21 @@ epjson.reviver2 = function reviver(key, value){
 
 epjson.reviver = function reviver(key, value){
     console.log('xxx reviver',key,value, typeof value);
-    if(key!=='$escape' && value!=null && value.$special){
+    if(key==='$escape'){
+        // value.$internal='true';
+        return value;
+    }else if(value!=null && value.$special){
         if(value.$special=='Date'){
             return new Date(value.$date);
         }else if(value.$special=='undefined'){
             return undefined;
         }
-    }else if(/*key!=='$escape' &&*/ value!=null && value.$escape){
-        return value.$escape;
+    }else if(value!=null && value.$escape){
+        if(value.$escape.$internal || true ){
+            delete value.$escape.$internal;
+            return value.$escape;
+        }
+        return value;
     }
     return value;
 }
