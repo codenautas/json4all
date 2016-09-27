@@ -37,8 +37,9 @@ var fixtures=[
     {name:'bigNumber' ,value: 12345678901234567890,        },
     {name:'bool'      ,value: true,                        },
     {name:'null'      ,value: null,                        },
-    {name:'undef'     ,value: undefined                     , expectedEncode: '{"$undefined": true}'},
+    {name:'undef'     ,value: undefined                     , expectEncode: '{"$special":"undefined"}'},
     {name:'{undef}'   ,value: {a:undefined}, expected:{}   },
+    {name:'[undef]'   ,value: [0,undefined,"0",null,false]  , expectEncode: '[0,{"$special":"undefined"},"0",null,false]', skipExpectedJsInBrowser:runningInBrowser},
     {name:'regex'     ,value: /hola/ig,                    },
     {name:'{regex}'   ,value: {r:/hola/}                    , check:function(o){ return o.r instanceof RegExp; }},
     {name:'fun'       ,value: function(x){ return x+1; }    , expected: undefined},
@@ -82,14 +83,14 @@ describe("JSON4all",function(){
             var diffs = selfExplain.assert.allDifferences(decoded,expected);
             var eql=!diffs;
             if(!eql){ console.log("--- DIFFS", diffs); }
-            expect(eql).to.not.be();
+            expect(eql).to.be.ok();
             if(! fixture.skipExpectedJsInBrowser) {
                 try{
                     expect(decoded).to.eql(expected);
                 }catch(err){
-                    var obtainedPart=decoded .list1[0].one.two;
-                    var expectedPart=expected.list1[0].one.two;
                     try{
+                        var obtainedPart=decoded .list1[0].one.two;
+                        var expectedPart=expected.list1[0].one.two;
                         expect(obtainedPart).to.eql(expectedPart);
                         console.log('--partes iguales');
                     }catch(err){

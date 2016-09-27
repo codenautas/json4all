@@ -59,7 +59,7 @@ var types={
 
 json4all.replacer = function replacer(key, value){
     var realValue=this===null?null:this[key];
-    if(realValue===undefined || realValue!==null && realValue instanceof Function){
+    if(realValue===undefined || typeof realValue === "undefined" || realValue!==null && realValue instanceof Function){
         return {$special: "undefined"};
     }
     if(realValue===null || typeof realValue!=='object'){
@@ -87,13 +87,13 @@ function valueHasProperty(value, propName) {
 json4all.reviver = function reviver(key, value){
     if(key==='$escape'){
         return value;
-    }else if(valueHasProperty(value,'$special')){
+    }else if(value!==null && value.$special){
         if(types[value.$special]){
             return new types[value.$special].construct(value.$value);
         }else if(value.$special=='undefined'){
             return undefined;
         }
-    }else if(valueHasProperty(value,'$escape')){
+    }else if(value!==null && value.$escape){
         return value.$escape;
     }
     return value;
