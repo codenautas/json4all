@@ -44,21 +44,21 @@ rules:
   # Best Practices
   accessor-pairs: 2
   block-scoped-var: 0
-  complexity: [2, 6]
+  complexity: [2, 11]
   consistent-return: 0
   curly: 0
   default-case: 0
   dot-location: 0
   dot-notation: 0
-  eqeqeq: 2
-  guard-for-in: 2
+  eqeqeq: 0
+  guard-for-in: 0
   no-alert: 2
   no-caller: 2
   no-case-declarations: 2
   no-div-regex: 2
   no-else-return: 0
   no-empty-pattern: 2
-  no-eq-null: 2
+  no-eq-null: 0
   no-eval: 2
   no-extend-native: 2
   no-extra-bind: 2
@@ -99,7 +99,7 @@ rules:
   yoda: 0
 
   # Strict
-  strict: "error"
+  strict: 2 #error
 
   # Variables
   init-declarations: 0
@@ -116,7 +116,7 @@ rules:
 
   # Node.js and CommonJS
   callback-return: 2
-  global-require: 2
+  global-require: 0
   handle-callback-err: 2
   no-mixed-requires: 0
   no-new-require: 0
