@@ -1,6 +1,6 @@
 "use strict";
 
-var epjson = {};
+var JSON4all = {};
 
 var types={
     Date  : {
@@ -27,7 +27,7 @@ function SymbolInternalx(){
     throw new Error('this is a symbol, not a function');
 }
 
-epjson.replacer = function replacer(key, value){
+JSON4all.replacer = function replacer(key, value){
     // if(key==='$special'){
     //     return {$escape: }
     // }
@@ -65,7 +65,7 @@ epjson.replacer = function replacer(key, value){
     return value;
 }
 
-epjson.reviver = function reviver(key, value){
+JSON4all.reviver = function reviver(key, value){
     console.log('xxx reviver',key,value, typeof value);
     if(key==='$escape'){
         return value;
@@ -83,17 +83,17 @@ epjson.reviver = function reviver(key, value){
     return value;
 }
 
-epjson.stringify = function stringify(value){
+JSON4all.stringify = function stringify(value){
     console.log('xxx stringify',value);
-    return JSON.stringify(value, epjson.replacer);
+    return JSON.stringify(value, JSON4all.replacer);
 }
 
-epjson.parse = function parse(text){
+JSON4all.parse = function parse(text){
     console.log(['xxx parse'],text);
-    return JSON.parse(text, epjson.reviver);
+    return JSON.parse(text, JSON4all.reviver);
 }
 
-epjson.addType = function addType(typeConstructor){
+JSON4all.addType = function addType(typeConstructor){
     types[typeConstructor.name]={
         construct: function construct(value){
             return typeConstructor.JSON4reviver(value);
@@ -104,4 +104,4 @@ epjson.addType = function addType(typeConstructor){
     };
 }
 
-module.exports = epjson;
+module.exports = JSON4all;

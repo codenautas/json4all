@@ -5,10 +5,8 @@
   "author": "Codenautas <codenautas@googlegroups.com>",
   "repository": "codenautas/epjson",
   "license": "MIT",
-  "main": "index.js",
-  "files": [
-    "index.js"
-  ],
+  "main": "json4all.js",
+  "files": [],
   "dependencies": {
   },
   "devDependencies": {
