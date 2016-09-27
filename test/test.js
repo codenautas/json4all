@@ -1,8 +1,7 @@
 "use strict";
 
 var expect = require('expect.js')
-//var selfExplain = require('self-explain')
-var deepEqual = require('deep-equal');
+var selfExplain = require('self-explain')
 var JSON4all = require('../json4all.js')
 
 var seeAll = false;
@@ -72,16 +71,8 @@ describe("JSON4all",function(){
             }
             var decoded=JSON4all.parse(encoded);
             expect(decoded).to.eql('expected' in fixture?fixture.expected:fixture.value);
-            var eql=deepEqual(decoded,'expected' in fixture?fixture.expected:fixture.value);
-            /*
-            var expected = ('expected' in fixture?fixture.expected:fixture.value);
-            console.log("DEC", typeof decoded, decoded); console.log("EXP", typeof expected, expected);
-            var diff = selfExplain.assert.allDifferences(decoded,expected);
-            console.log("DIFF", JSON.stringify(diff));
-            var eql=diff===null;
-            var eql=selfExplain.assert.allDifferences(decoded,('expected' in fixture?fixture.expected:fixture.value))===null;
-            */
-            expect(eql).to.ok();
+            var eql=!!selfExplain.assert.allDifferences(decoded,('expected' in fixture?fixture.expected:fixture.value));
+            expect(eql).to.not.be.ok();
             if('check' in fixture){
                 expect(fixture.check(decoded)).to.ok();
             }
