@@ -22,6 +22,8 @@ Point.JSON4reviver=function(o){ return new Point(o.x, o.y, o.z); }
 
 JSON4all.addType(Point);
 
+var today = new Date();
+
 var fixtures=[
     {name:'strDate'   ,value: "2012-01-02",              },
     {name:'strStr'    ,value: "hola",                    },
@@ -41,8 +43,8 @@ var fixtures=[
     {name:'fun'       ,value: function(x){ return x+1; } , expected: undefined},
     {name:'{fun}'     ,value: {f:function(x){ return x+1; }}, expected:{} },
     {name:'complex'   ,
-        value:{list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:new Date()},_:'333'}],f:function(){return 3;}},
-     expected:{list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:new Date()},_:'333'}]                        },
+        value:{list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:today},_:'333'}],f:function(){return 3;}},
+     expected:{list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:today},_:'333'}]                        },
     },
     {name:'h1-JSON4all' ,value: {d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}, 
                        expectEncode: JSON.stringify({d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}),
@@ -70,9 +72,12 @@ describe("JSON4all",function(){
                 expect(encoded).to.eql(fixture.expectEncode);
             }
             var decoded=JSON4all.parse(encoded);
-            expect(decoded).to.eql('expected' in fixture?fixture.expected:fixture.value);
-            var eql=!!selfExplain.assert.allDifferences(decoded,('expected' in fixture?fixture.expected:fixture.value));
+            var expected = 'expected' in fixture?fixture.expected:fixture.value;
+            var diffs = selfExplain.assert.allDifferences(decoded,expected);
+            var eql=!!diffs;
+            if(eql!==false) { console.log("--- DIFFS", JSON.stringify(diffs)); }
             expect(eql).to.not.be.ok();
+            expect(decoded).to.eql(expected);
             if('check' in fixture){
                 expect(fixture.check(decoded)).to.ok();
             }
