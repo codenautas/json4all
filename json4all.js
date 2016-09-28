@@ -72,9 +72,6 @@ function InternalValueForUndefined(){
 
 json4all.replacer = function replacer(key, value){
     var realValue = this[key];
-    if(this && this instanceof Array || realValue && realValue instanceof Array){
-        // console.log(['REP'], key, value, realValue, typeof realValue);
-    }
     if(realValue===InternalValueForUndefined){
         this[key]=undefined;
     }
@@ -113,7 +110,7 @@ json4all.replacer = function replacer(key, value){
 json4all.reviver = function reviver(key, value){
     if(key==='$escape'){
         return value;
-    }else if(value!==null && value.$special){
+    }else if(value!=null && value.$special){
         if(types[value.$special]){
             return new types[value.$special].construct(value.$value);
         }else if(value.$special=='undefined'){
@@ -121,7 +118,7 @@ json4all.reviver = function reviver(key, value){
         }else{
             throw new Error("JSON4all.parse invalid $special");
         }
-    }else if(value!==null && value.$escape){
+    }else if(value!=null && value.$escape){
         return value.$escape;
     }
     return value;

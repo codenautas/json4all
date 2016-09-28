@@ -119,5 +119,14 @@ describe("JSON4all error conditions",function(){
             JSON4all.stringify(new OtherClass());
         }).to.throwError(/JSON4all.*registered.*type/);
     });
+    it("bugy condition in some IE", function(){
+        var encoded='{"3":33}';
+        var expected={"3":33};
+        var obtained = JSON4all.parse(encoded);
+        var diffs = selfExplain.assert.allDifferences(obtained,expected);
+        if(diffs){
+            console.log(diffs)
+        };
+        expect(diffs).to.not.be.ok();
+    });
 });
-
