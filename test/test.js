@@ -32,7 +32,7 @@ var fixtures=[
     {name:'partes'    ,value: [parte, parte],              },
     {name:'rombo'     ,value: {a:parte, b:parte},          },
     {name:'array'     ,value: [1,"2", false],              },
-    {name:'fecha'     ,value: new Date(1969, 5-1, 6)        , expectEncode: '{"$special":"Date","$value":-20725200000}', check:function(o){ return o instanceof Date; }},
+    {name:'fecha'     ,value: new Date(-20736000000)        , expectEncode: '{"$special":"Date","$value":-20736000000}', check:function(o){ return o instanceof Date; }},
     {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}   , check:function(o){ return o.f instanceof Date; }},
     {name:'bigNumber' ,value: 12345678901234567890,        },
     {name:'bool'      ,value: true,                        },
