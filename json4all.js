@@ -30,11 +30,11 @@ function functionName(fun) {
         return fun.toString().replace(/^\s*function\s*([^(]*)\((.|\s)*$/i,'$1');
     }
     return name;
-};
+}
 
 function constructorName(obj) {
     return functionName(obj.constructor);
-};
+}
 
 var types={
     Date  : {
@@ -62,7 +62,7 @@ JSON.stringify([undefined],function(key, value){
         thisPlatformSkipsUndefinedInArrays = false;
     }
     return value;
-})
+});
 
 var thisPlatformHasReplacerBug = false;
 
@@ -71,7 +71,7 @@ JSON.parse('{"3":"33"}',function(key, value){
         thisPlatformHasReplacerBug = true;
     }
     return value;
-})
+});
 
 /* istanbul ignore next */
 function InternalValueForUndefined(){ 
@@ -134,63 +134,31 @@ json4all.reviver = function reviver(key, value){
     return value;
 };
 
-json4all.reviver2 = function reviver(key, value){
-    var log=false;
-    var realValue=thisPlatformSkipsUndefinedInArrays && value===undefined && !isNaN(key)?this[key]:value;
-    if(value===undefined){
-        log=true;
-        console.log(['xxxxxxxxx'],key,value,realValue,this,'->',realValue.$special, typeof realValue)
-    }
-    if(key==='$escape'){
-        return value;
-    }else if(value!==null && realValue.$special){
-        if(log){console.log("ssssssssspecial",realValue.$special)}
-        if(types[realValue.$special]){
-            if(log){console.log("ssssssssspecial TYPED")}
-            return new types[realValue.$special].construct(realValue.$value);
-        }else if(realValue.$special=='undefined'){
-            if(log){console.log("ssssssssspecial undefined")}
-            return undefined;
-        }else{
-            throw new Error("JSON4all.parse invalid $special");
-        }
-    }else if(value!==null && realValue.$escape){
-        return realValue.$escape;
-    }
-    return value;
-};
-
 json4all.stringify = function stringify(value){
     return JSON.stringify(value, json4all.replacer);
 };
 
 if(thisPlatformHasReplacerBug){
     var reviveAll = function reviveAll(o){
-        console.log(['reviveAll'],o)
         if(o!=null && o instanceof Object){
             for(var key in o){
+                /* istanbul ignore next */
                 var realKey = o[key]===undefined && !isNaN(key)?Number(key):key;
-                if(o[key]===undefined){
-                    console.log('************', o, key, realKey, o[key], o[realKey])
-                }
-                if(o.hasOwnProperty(key)){
-                    reviveAll(o[key]);
+                // if(o.hasOwnProperty(key)){
                     var newValue = json4all.reviver(key, o[key]); 
                     if(newValue===undefined/* && !(o instanceof Array)*/){
                         delete o[key];
                     }else{
                         o[key] = newValue;
                     }
-                }
+                // }
             }
         }
-    }
+    };
     json4all.parse = function parse(text){
-        console.log(['parse'],text)
         var parsed=JSON.parse(text);
         reviveAll(parsed);
         return json4all.reviver('', parsed);
-
     };
 }else{
     json4all.parse = function parse(text){

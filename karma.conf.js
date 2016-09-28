@@ -1,5 +1,5 @@
-// Karma configuration
-// Generated on Wed Jul 22 2015 16:41:45 GMT-0300 (Hora estándar de Argentina)
+"use strict";
+/*jshint node:true */
 
 module.exports = function(config, preConfig) {
   config.set({
@@ -38,7 +38,7 @@ module.exports = function(config, preConfig) {
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     // /* ESPERANDO QUE ARREGLEN: https://github.com/karma-runner/karma/issues/1768
     preprocessors: {
-      'json4all.js': !!preConfig.singleRun?['coverage']:[] /* COMENTAR PARA VER MÁS LIMPIO EL CÓDIGO */
+      'json4all.js': preConfig.singleRun?['coverage']:[] /* COMENTAR PARA VER MÁS LIMPIO EL CÓDIGO */
     },
     coverageReporter: process.env.TRAVIS||preConfig.singleRun?{
         type : 'json',
