@@ -81,7 +81,7 @@ describe("JSON4all",function(){
             var expected = 'expected' in fixture?fixture.expected:fixture.value;
             var diffs = selfExplain.assert.allDifferences(decoded,expected);
             var eql=!diffs;
-            if(!eql){ console.log("--- DIFFS", diffs); }
+            if(!eql){ console.log("--- DIFFS", diffs); console.log('[both]',decoded,expected); }
             expect(eql).to.be.ok();
             if(! fixture.skipExpectedJsInBrowser) {
                 try{
@@ -122,6 +122,16 @@ describe("JSON4all error conditions",function(){
     it("bugy condition in some IE", function(){
         var encoded='{"3":33}';
         var expected={"3":33};
+        var obtained = JSON4all.parse(encoded);
+        var diffs = selfExplain.assert.allDifferences(obtained,expected);
+        if(diffs){
+            console.log(diffs)
+        };
+        expect(diffs).to.not.be.ok();
+    });
+    it("very bugy condition in some IE", function(){
+        var encoded='{"3":{"$special":"Date","$value":-20736000000}}';
+        var expected={"3":new Date(-20736000000)};
         var obtained = JSON4all.parse(encoded);
         var diffs = selfExplain.assert.allDifferences(obtained,expected);
         if(diffs){
