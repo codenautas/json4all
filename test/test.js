@@ -105,3 +105,19 @@ describe("JSON4all",function(){
     });
 });
 
+function OtherClass(){
+}
+
+describe("JSON4all error conditions",function(){
+    it("rejects invalid $specials", function(){
+        expect(function(){
+            JSON4all.parse('{"$special":"ugh!"}');
+        }).to.throwError(/JSON4all.*invalid.*\$special/);
+    });
+    it("rejects unregistered classes", function(){
+        expect(function(){
+            JSON4all.stringify(new OtherClass());
+        }).to.throwError(/JSON4all.*registered.*type/);
+    });
+});
+

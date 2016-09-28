@@ -1,7 +1,7 @@
 {
   "name": "json4all",
   "description": "JSON for all purposes and all environments",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "repository": "codenautas/json4all",
   "license": "MIT",
@@ -47,14 +47,14 @@
     "start": "node example/server.js",
     "test-cli": "node server/karma-server.js --karma karma.conf.js --single-run",
     "test-cli-h": "node server/karma-server.js --karma karma.conf.js",
-    "test-cli-ff": "npm run test-cli -- --browsers Firefox"
+    "test-cli-ff": "npm run test-cli -- --browsers Firefox",
+    "report": "istanbul report"
   },
   "qa-control": {
     "package-version": "0.3.0",
     "coverage": 100,
     "run-in": "both",
     "stability": "extending",
-    "type": "lib",
-    "ecmaVersion": 6
+    "type": "lib"
   }
 }

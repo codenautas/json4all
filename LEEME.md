@@ -8,7 +8,7 @@ JSON for all purposes and all platforms
 [!--lang:*-->
 
 <!-- cucardas -->
-![designing](https://img.shields.io/badge/stability-designing-red.svg)
+![extending](https://img.shields.io/badge/stability-extending-orange.svg)
 [![npm-version](https://img.shields.io/npm/v/json4all.svg)](https://npmjs.org/package/json4all)
 [![downloads](https://img.shields.io/npm/dm/json4all.svg)](https://npmjs.org/package/json4all)
 [![build](https://img.shields.io/travis/codenautas/json4all/master.svg)](https://travis-ci.org/codenautas/json4all)

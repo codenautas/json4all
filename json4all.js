@@ -25,13 +25,11 @@ var json4all = {};
 /*jshint +W004 */
 
 function functionName(fun) {
-    if(fun){
-        var name = fun.name;
-        if(!name){
-            return fun.toString().replace(/^\s*function\s*([^(]*)\((.|\s)*$/i,'$1');
-        }
-        return name;
+    var name = fun.name;
+    if(!name){
+        return fun.toString().replace(/^\s*function\s*([^(]*)\((.|\s)*$/i,'$1');
     }
+    return name;
 };
 
 function constructorName(obj) {
@@ -66,10 +64,14 @@ JSON.stringify([undefined],function(key, value){
     return value;
 })
 
-function InternalValueForUndefined(){ throw new Error('this is not a function'); }
+/* istanbul ignore next */
+function InternalValueForUndefined(){ 
+    /* istanbul ignore next */
+    throw new Error('this is not a function'); 
+}
 
 json4all.replacer = function replacer(key, value){
-    var realValue=this===null?null:this[key];
+    var realValue = this[key];
     if(this && this instanceof Array || realValue && realValue instanceof Array){
         // console.log(['REP'], key, value, realValue, typeof realValue);
     }
@@ -98,18 +100,15 @@ json4all.replacer = function replacer(key, value){
             return realValue;
         }
     }
-    if(realValue!==null && realValue instanceof Object){
-        var typeName = constructorName(realValue);
-        if(types[typeName]){
-            return {$special:typeName, $value: types[typeName].deconstruct(realValue)};
-        }
+    var typeName = constructorName(realValue);
+    if(typeName==="Object" || typeName==="Array"){
+        return value;
+    }else if(types[typeName]){
+        return {$special:typeName, $value: types[typeName].deconstruct(realValue)};
+    }else{
+        throw new Error("JSON4all.stringify unregistered object type");
     }
-    return value;
 };
-
-function valueHasProperty(value, propName) {
-    return value!==null && typeof value !== 'undefined' && value.hasOwnProperty(propName);
-}
 
 json4all.reviver = function reviver(key, value){
     if(key==='$escape'){
@@ -119,6 +118,8 @@ json4all.reviver = function reviver(key, value){
             return new types[value.$special].construct(value.$value);
         }else if(value.$special=='undefined'){
             return undefined;
+        }else{
+            throw new Error("JSON4all.parse invalid $special");
         }
     }else if(value!==null && value.$escape){
         return value.$escape;
