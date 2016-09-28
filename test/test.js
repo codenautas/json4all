@@ -17,7 +17,7 @@ function Point(x, y, z) {
     this.z     = z;
 }
 // For EJSON
-Point.prototype.toJSON4replacer=function(){ return {x:this.x, y:this.y, z:this.z}; }
+Point.prototype.JSON4replacer=function(){ return {x:this.x, y:this.y, z:this.z}; }
 Point.JSON4reviver=function(o){ return new Point(o.x, o.y, o.z); }
 
 JSON4all.addType(Point);

@@ -133,7 +133,7 @@ json4all.addType = function addType(typeConstructor){
             return typeConstructor.JSON4reviver(value);
         },
         deconstruct: function deconstruct(o){
-            return o.toJSON4replacer();
+            return o.JSON4replacer();
         }
     };
 };
