@@ -57,7 +57,14 @@ var types={
     }
 };
 
-var isIE=typeof window==='undefined'?false:window.navigator.userAgent.match(/IE|Trident/);
+var thisPlatformSkipsUndefinedInArrays = true;
+
+JSON.stringify([undefined],function(key, value){
+    if(key==='0'||key===0){
+        thisPlatformSkipsUndefinedInArrays = false;
+    }
+    return value;
+})
 
 function InternalValueForUndefined(){ throw new Error('this is not a function'); }
 
@@ -81,7 +88,7 @@ json4all.replacer = function replacer(key, value){
     if('$special' in realValue || '$escape' in realValue){
         return {$escape: realValue};
     }
-    if(isIE && realValue!==null){
+    if(thisPlatformSkipsUndefinedInArrays && realValue!==null){
         if(realValue instanceof Array){
             for(var i=0; i<realValue.length; i++){
                 if(typeof realValue[i] === 'undefined'){
