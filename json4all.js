@@ -25,11 +25,11 @@ var json4all = {};
 /*jshint +W004 */
 
 function functionName(fun) {
-    var name = fun.name;
-    if(!name){
+    if('name' in fun){
+        return fun.name;
+    }else{
         return fun.toString().replace(/^\s*function\s*([^(]*)\((.|\s)*$/i,'$1');
     }
-    return name;
 }
 
 function constructorName(obj) {
@@ -107,11 +107,12 @@ json4all.replacer = function replacer(key, value){
         }
     }
     var typeName = constructorName(realValue);
-    if(typeName==="Object" || typeName==="Array"){
+    if(typeName==="Object" || typeName==="Array" || !typeName){
         return value;
     }else if(types[typeName]){
         return {$special:typeName, $value: types[typeName].deconstruct(realValue)};
     }else{
+        console.log("JSON4all.stringify unregistered object type", typeName);
         throw new Error("JSON4all.stringify unregistered object type");
     }
 };
@@ -126,6 +127,7 @@ json4all.reviver = function reviver(key, value){
         }else if(types[value.$special]){
             return new types[value.$special].construct(value.$value);
         }else{
+            console.log("JSON4all.parse invalid $special", value.$special);
             throw new Error("JSON4all.parse invalid $special");
         }
     }else if(value!==null && value.$escape){

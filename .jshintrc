@@ -4,5 +4,5 @@
     "curly": true,
     "strict": "global",
     "eqnull": true,
-    "predef": [ "module", "exports" ]
+    "predef": [ "module", "exports", "console" ]
 } 

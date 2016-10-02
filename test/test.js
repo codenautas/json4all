@@ -25,6 +25,11 @@ JSON4all.addType(Point);
 var today = new Date();
 var runningInBrowser = typeof window !== 'undefined';
 
+var data = new function(){
+    this.one=1;
+    this.alpha='α';
+}();
+
 var fixtures=[
     {name:'strDate'   ,value: "2012-01-02",                },
     {name:'strStr'    ,value: "hola",                      },
@@ -65,6 +70,7 @@ var fixtures=[
     {name:'hack-EJSON',value: {"$special":"Point","$value":{"x":1,"y":2,"z":3.3}} },
     {name:'hack2EJSON',value: {$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}} },
     {name:'hack3EJSON',value: {$escape:{$escape:{$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}}}} },
+    {name:'anonymous' ,value: data, expected:{one:1, alpha:'α'} },
 ];
 
 describe("JSON4all",function(){
