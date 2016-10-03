@@ -7,8 +7,8 @@ var JSON4all = require('../json4all.js')
 var seeAll = false;
 
 var parte={
-    parteA: "A",
-}
+    parteA: "A"
+};
 
 function Point(x, y, z) {
     this.klass = 'Point';
@@ -31,21 +31,21 @@ var data = new function(){
 }();
 
 var fixtures=[
-    {name:'strDate'   ,value: "2012-01-02",                },
-    {name:'strStr'    ,value: "hola",                      },
-    {name:'parte'     ,value: parte,                       },
-    {name:'partes'    ,value: [parte, parte],              },
-    {name:'rombo'     ,value: {a:parte, b:parte},          },
-    {name:'array'     ,value: [1,"2", false],              },
+    {name:'strDate'   ,value: "2012-01-02"                 },
+    {name:'strStr'    ,value: "hola"                       },
+    {name:'parte'     ,value: parte                        },
+    {name:'partes'    ,value: [parte, parte]               },
+    {name:'rombo'     ,value: {a:parte, b:parte}           },
+    {name:'array'     ,value: [1,"2", false]               },
     {name:'fecha'     ,value: new Date(-20736000000)        , expectEncode: '{"$special":"Date","$value":-20736000000}', check:function(o){ return o instanceof Date; }},
     {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}   , check:function(o){ return o.f instanceof Date; }},
-    {name:'bigNumber' ,value: 12345678901234567890,        },
-    {name:'bool'      ,value: true,                        },
-    {name:'null'      ,value: null,                        },
+    {name:'bigNumber' ,value: 12345678901234567890         },
+    {name:'bool'      ,value: true                         },
+    {name:'null'      ,value: null                         },
     {name:'undef'     ,value: undefined                     , expectEncode: '{"$special":"undefined"}'},
     {name:'{undef}'   ,value: {a:undefined}, expected:{}   , expectEncode: '{"a":{"$special":"undefined"}}'},
     {name:'[undef]'   ,value: [0,undefined,"0",null,false] , expectEncode: '[0,{"$special":"undefined"},"0",null,false]', skipExpectedJsInBrowser:runningInBrowser},
-    {name:'regex'     ,value: /hola/ig,                    },
+    {name:'regex'     ,value: /hola/ig                     },
     {name:'{regex}'   ,value: {r:/hola/}                    , check:function(o){ return o.r instanceof RegExp; }},
     {name:'fun'       ,value: function(x){ return x+1; }    , expected: undefined},
     {name:'{fun}'     ,value: {f:function(x){ return x+1; }}, expected:{} },
@@ -70,7 +70,7 @@ var fixtures=[
     {name:'hack-EJSON',value: {"$special":"Point","$value":{"x":1,"y":2,"z":3.3}} },
     {name:'hack2EJSON',value: {$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}} },
     {name:'hack3EJSON',value: {$escape:{$escape:{$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}}}} },
-    {name:'anonymous' ,value: data, expected:{one:1, alpha:'α'} },
+    {name:'anonymous' ,value: data, expected:{one:1, alpha:'α'} } 
 ];
 
 describe("JSON4all",function(){
@@ -85,10 +85,12 @@ describe("JSON4all",function(){
             }
             var decoded=JSON4all.parse(encoded);
             var expected = 'expected' in fixture?fixture.expected:fixture.value;
-            var diffs = selfExplain.assert.allDifferences(decoded,expected);
-            var eql=!diffs;
-            if(!eql){ console.log("--- DIFFS", diffs); console.log('[both]',decoded,expected); }
-            expect(eql).to.be.ok();
+            if(selfExplain){
+                var diffs = selfExplain.assert.allDifferences(decoded,expected);
+                var eql=!diffs;
+                if(!eql){ console.log("--- DIFFS", diffs); console.log('[both]',decoded,expected); }
+                expect(eql).to.be.ok();
+            }
             if(! fixture.skipExpectedJsInBrowser) {
                 try{
                     expect(decoded).to.eql(expected);
@@ -129,20 +131,27 @@ describe("JSON4all error conditions",function(){
         var encoded='{"3":33}';
         var expected={"3":33};
         var obtained = JSON4all.parse(encoded);
-        var diffs = selfExplain.assert.allDifferences(obtained,expected);
-        if(diffs){
-            console.log(diffs)
-        };
-        expect(diffs).to.not.be.ok();
+        if(selfExplain){
+            var diffs = selfExplain.assert.allDifferences(obtained,expected);
+            if(diffs){
+                console.log(diffs)
+            };
+            expect(diffs).to.not.be.ok();
+        }
+        expect(obtained).to.eql(expected);
     });
     it("very bugy condition in some IE", function(){
         var encoded='{"3":{"$special":"Date","$value":-20736000000}}';
         var expected={"3":new Date(-20736000000)};
         var obtained = JSON4all.parse(encoded);
-        var diffs = selfExplain.assert.allDifferences(obtained,expected);
-        if(diffs){
-            console.log(diffs)
-        };
-        expect(diffs).to.not.be.ok();
+        expect(obtained).to.eql(expected);
+        if(selfExplain){
+            var diffs = selfExplain.assert.allDifferences(obtained,expected);
+            if(diffs){
+                console.log(diffs)
+            };
+            expect(diffs).to.not.be.ok();
+        }
+        expect(obtained).to.eql(expected);
     });
 });

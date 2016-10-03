@@ -13,21 +13,26 @@ module.exports = function(config, preConfig) {
 
     // list of files / patterns to load in the browser
     files: [
-      //'node_modules/es6-promise/dist/es6-promise.min.js',
       'node_modules/require-bro/lib/require-bro.js',
-      //'node_modules/best-globals/best-globals.js',
-      //'node_modules/js-to-html/js-to-html.js',
-      //'node_modules/ajax-best-promise/bin/ajax-best-promise.js',
       'node_modules/express-useragent/lib/express-useragent.js',
       'node_modules/self-explain/node_modules/best-globals/best-globals.js',
       'node_modules/self-explain/node_modules/esprima/dist/esprima.js',
       'node_modules/self-explain/dist/escodegen.browser.js',
       'node_modules/self-explain/lib/self-explain.js',
-      //'lib/*.js',
       'json4all.js',
       'test/*.js'
     ],
 
+    filesForIE8: [
+      'test/tools/module.js',
+      'node_modules/JSON/json2.js',
+      'node_modules/require-bro/lib/polyfills-bro.js',
+      'node_modules/require-bro/lib/require-bro.js',
+      'test/tools/module2.js',
+      'node_modules/express-useragent/lib/express-useragent.js',
+      'json4all.js',
+      'test/*.js'
+    ],
 
     // list of files to exclude
     exclude: [
