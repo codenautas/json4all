@@ -147,6 +147,7 @@ if(thisPlatformHasReplacerBug){
                 /* istanbul ignore next */
                 var realKey = o[key]===undefined && !isNaN(key)?Number(key):key;
                 // if(o.hasOwnProperty(key)){
+                    reviveAll(o[key]);
                     var newValue = json4all.reviver(key, o[key]); 
                     if(newValue===undefined/* && !(o instanceof Array)*/){
                         delete o[key];
