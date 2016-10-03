@@ -106,6 +106,19 @@ console.log(q instanceof Point); // true
 ```
 
 <!--lang:es-->
+## Pruebas con dispositivos reales
+
+<!--lang:en--]
+## Tests with real devices
+
+[!--lang:*-->
+
+NPM version | Device                 | OS            | nav
+------------|------------------------|---------------|----------------
+0.1.4       | Samsung SM-T560        | Android 4.4.4 | Firefox 49.0.0
+0.1.4       | Samsung SM-T560        | Android 4.4.4 | Chrome 53.0.2785
+
+<!--lang:es-->
 ## Licencia
 <!--lang:en--]
 ## License

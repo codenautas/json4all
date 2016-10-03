@@ -71,6 +71,14 @@ var q = JSON4all.parse(JSON4all.stingify(p));
 console.log(q instanceof Point); // true
 ```
 
+## Tests with real devices
+
+
+NPM version | Device                 | OS            | nav
+------------|------------------------|---------------|----------------
+0.1.4       | Samsung SM-T560        | Android 4.4.4 | Firefox 49.0.0
+0.1.4       | Samsung SM-T560        | Android 4.4.4 | Chrome 53.0.2785
+
 ## License
 
 [MIT](LICENSE)
