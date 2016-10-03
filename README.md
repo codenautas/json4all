@@ -78,7 +78,9 @@ NPM version | Device                 | OS            | nav
 ------------|------------------------|---------------|----------------
 0.1.4       | Samsung SM-T560        | Android 4.4.4 | Firefox 49.0.0
 0.1.4       | Samsung SM-T560        | Android 4.4.4 | Chrome 53.0.2785
+0.1.4       | Samsung SM-T560        | Android 4.4.4 | Opera 37.0.2192
 0.1.4       | Samsung S5             | Android 4.4.2 | Firefox 49.0.0
+0.1.4       | Samsung S5             | Android 4.4.2 | Opera Mobile 37.1.2192
 
 ## License
 
