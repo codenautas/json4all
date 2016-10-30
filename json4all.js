@@ -85,6 +85,13 @@ function InternalValueForUnset(){
     throw new Error('this is not a function'); 
 }
 
+json4all.directTypes={
+    "Object"  : true,
+    "Array"   : true,
+    "anonymus": true,
+    ""        : true
+}
+
 json4all.replacer = function replacer(key, value){
     var realValue = this[key];
     if(realValue===InternalValueForUndefined){
@@ -112,7 +119,7 @@ json4all.replacer = function replacer(key, value){
         return realValue;
     }
     var typeName = constructorName(realValue);
-    if(typeName==="Object" || typeName==="Array" || !typeName){
+    if(json4all.directTypes[typeName]){
         return value;
     }else if(types[typeName]){
         return {$special:typeName, $value: types[typeName].deconstruct(realValue)};
