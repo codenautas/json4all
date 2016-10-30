@@ -13,6 +13,9 @@ if(runningInBrowser){
     deepEqual = function(){};
 }else{
     deepEqual = require('assert').deepStrictEqual;
+    if(!deepEqual){
+        deepEqual = function(){};
+    }
 }
 
 function compareObjects(obtained, expected){
