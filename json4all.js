@@ -86,10 +86,10 @@ function InternalValueForUnset(){
 }
 
 json4all.directTypes={
-    "Object"  : true,
-    "Array"   : true,
-    "anonymus": true,
-    ""        : true
+    "Object"   : true,
+    "Array"    : true,
+    "anonymous": true,
+    ""         : true
 }
 
 json4all.replacer = function replacer(key, value){
