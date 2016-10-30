@@ -1,7 +1,7 @@
 {
   "name": "json4all",
   "description": "JSON for all purposes and all environments",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "repository": "codenautas/json4all",
   "license": "MIT",
@@ -29,9 +29,11 @@
     "karma-phantomjs-launcher": "~1.0.2",
     "karma-safari-launcher": "~1.0.0",
     "istanbul-middleware": "~0.2.2",
-    "mocha": "~3.1.0",
-    "phantomjs-prebuilt": "~2.1.12",
+    "mocha": "~3.1.2",
+    "phantomjs-prebuilt": "~2.1.13",
     
+    "best-globals": "~0.5.0",
+    "discrepances": "~0.0.3",
     "require-bro": "~0.1.4",
     "self-explain": "~0.10.8"
   },

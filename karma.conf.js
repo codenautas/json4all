@@ -15,7 +15,8 @@ module.exports = function(config, preConfig) {
     files: [
       'node_modules/require-bro/lib/require-bro.js',
       'node_modules/express-useragent/lib/express-useragent.js',
-      'node_modules/self-explain/node_modules/best-globals/best-globals.js',
+      'node_modules/best-globals/best-globals.js',
+      'node_modules/discrepances/lib/discrepances.js',
       'node_modules/self-explain/node_modules/esprima/dist/esprima.js',
       'node_modules/self-explain/dist/escodegen.browser.js',
       'node_modules/self-explain/lib/self-explain.js',
@@ -30,6 +31,9 @@ module.exports = function(config, preConfig) {
       'node_modules/require-bro/lib/require-bro.js',
       'test/tools/module2.js',
       'node_modules/express-useragent/lib/express-useragent.js',
+      'node_modules/best-globals/best-globals.js',
+      'node_modules/self-explain/lib/self-explain.js',
+      'node_modules/discrepances/lib/discrepances.js',
       'json4all.js',
       'test/*.js'
     ],

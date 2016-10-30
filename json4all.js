@@ -79,32 +79,37 @@ function InternalValueForUndefined(){
     throw new Error('this is not a function'); 
 }
 
+/* istanbul ignore next */
+function InternalValueForUnset(){ 
+    /* istanbul ignore next */
+    throw new Error('this is not a function'); 
+}
+
 json4all.replacer = function replacer(key, value){
     var realValue = this[key];
     if(realValue===InternalValueForUndefined){
         this[key]=undefined;
+        return {$special: "undefined"};
+    }
+    if(key!=='' && (!(key in this) || realValue!==null && realValue instanceof Function)){
+        return {$special: "unset"};
     }
     if(realValue===undefined || typeof realValue === "undefined" || realValue!==null && realValue instanceof Function){
         return {$special: "undefined"};
     }
-    if(realValue===null || typeof realValue!=='object'){
-        return value;
-    }
-    if(key==='$escape'){
+    if(realValue===null || typeof realValue!=='object' || key==='$escape'){
         return value;
     }
     if('$special' in realValue || '$escape' in realValue){
         return {$escape: realValue};
     }
-    if(thisPlatformSkipsUndefinedInArrays && realValue!==null){
-        if(realValue instanceof Array){
-            for(var i=0; i<realValue.length; i++){
-                if(typeof realValue[i] === 'undefined'){
-                    realValue[i] = InternalValueForUndefined;
-                }
+    if(thisPlatformSkipsUndefinedInArrays && realValue instanceof Array){
+        for(var i=0; i<realValue.length; i++){
+            if(typeof realValue[i] === 'undefined'){
+                realValue[i] = InternalValueForUndefined;
             }
-            return realValue;
         }
+        return realValue;
     }
     var typeName = constructorName(realValue);
     if(typeName==="Object" || typeName==="Array" || !typeName){
@@ -122,7 +127,12 @@ json4all.reviver = function reviver(key, value){
     if(key==='$escape'){
         return value;
     }else if(value!==null && value.$special){
-        if(value.$special==='undefined'){
+        if(value.$special==='undefined'){ 
+            if(key===''){
+                return undefined;
+            }
+            return InternalValueForUndefined;
+        }else if(value.$special==='unset'){
             return undefined;
         }else if(types[value.$special]){
             return new types[value.$special].construct(value.$value);
@@ -132,6 +142,13 @@ json4all.reviver = function reviver(key, value){
         }
     }else if(value!==null && value.$escape){
         return value.$escape;
+    }
+    if(value instanceof Object){
+        for(var k in value){
+            if(value[k]===InternalValueForUndefined){
+                value[k]=undefined;
+            }
+        }
     }
     return value;
 };
@@ -149,7 +166,7 @@ if(thisPlatformHasReplacerBug){
                 // if(o.hasOwnProperty(key)){
                     reviveAll(o[key]);
                     var newValue = json4all.reviver(key, o[key]); 
-                    if(newValue===undefined/* && !(o instanceof Array)*/){
+                    if(newValue===InternalValueForUnset/* && !(o instanceof Array)*/){
                         delete o[key];
                     }else{
                         o[key] = newValue;

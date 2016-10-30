@@ -2,7 +2,27 @@
 
 var expect = require('expect.js')
 var selfExplain = require('self-explain')
+var discrepances = require('discrepances')
 var JSON4all = require('../json4all.js')
+
+var deepEqual;
+
+var runningInBrowser = typeof window !== 'undefined';
+
+if(runningInBrowser){
+    deepEqual = function(){};
+}else{
+    deepEqual = require('assert').deepStrictEqual;
+}
+
+function compareObjects(obtained, expected){
+    if(discrepances(obtained,expected)){
+        console.log('discrepances', discrepances(obtained,expected));
+        expect(obtained).to.eql(expected);
+    }else{
+        deepEqual(obtained,expected);
+    }
+}
 
 var seeAll = false;
 
@@ -23,12 +43,19 @@ Point.JSON4reviver=function(o){ return new Point(o.x, o.y, o.z); }
 JSON4all.addType(Point);
 
 var today = new Date();
-var runningInBrowser = typeof window !== 'undefined';
 
 var data = new function(){
     this.one=1;
     this.alpha='α';
 }();
+
+describe("common JSON behavior", function(){
+    it("JSON [undefined]", function(){
+        var arr=[undefined];
+        var j=JSON.stringify(arr);
+        compareObjects(j, "[null]"); // not as expected
+    });
+});
 
 var fixtures=[
     {name:'strDate'   ,value: "2012-01-02"                 },
@@ -43,24 +70,25 @@ var fixtures=[
     {name:'bool'      ,value: true                         },
     {name:'null'      ,value: null                         },
     {name:'undef'     ,value: undefined                     , expectEncode: '{"$special":"undefined"}'},
-    {name:'{undef}'   ,value: {a:undefined}, expected:{}   , expectEncode: '{"a":{"$special":"undefined"}}'},
-    {name:'[undef]'   ,value: [0,undefined,"0",null,false] , expectEncode: '[0,{"$special":"undefined"},"0",null,false]', skipExpectedJsInBrowser:runningInBrowser},
+    {name:'{undef}'   ,value: {a:undefined}                 , expectEncode: '{"a":{"$special":"undefined"}}'},
+    {name:'[undef]'   ,value: [0,undefined,"0",null,false] , expectEncode: '[0,{"$special":"undefined"},"0",null,false]', 
+                   expected2: [0,          "0",null,false] },
     {name:'regex'     ,value: /hola/ig                     },
     {name:'{regex}'   ,value: {r:/hola/}                    , check:function(o){ return o.r instanceof RegExp; }},
-    {name:'fun'       ,value: function(x){ return x+1; }    , expected: undefined},
-    {name:'{fun}'     ,value: {f:function(x){ return x+1; }}, expected:{} },
+    {name:'fun'       ,value: function(x){ return x+1; }    , expectEncode: '{"$special":"undefined"}', expected: undefined},
+    {name:'{fun}'     ,value: {f:function(x){ return x+1; }}, expectEncode: '{"f":{"$special":"unset"}}', expected:{} },
     {name:'complex'   ,
-        value:{list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:today},_:'333'}],f:function(){return 3;}},
-        expected:{list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:today},_:'333'}]                        },
-        skipExpectedJsInBrowser:runningInBrowser
+        value:    {list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:today},_:'333'}],f:function(){return 3;}},
+        expected: {list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:today},_:'333'}]                        },
+        expected2:{list1:[{one:{two:['the list',32,'33',null,          '}'],'3':33,'length':4,d:today},_:'333'}]                        },
     },
     {name:'h1-JSON4all' ,value: {d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}, 
         expectEncode: JSON.stringify({d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}),
-        skipExpectedJsInBrowser:runningInBrowser
+        /* expected2:runningInBrowser */
     },
     {name:'h2-JSON4all' ,value: {$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}},
         expectEncode: JSON.stringify({$escape:{$escape:{d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}}}),
-        skipExpectedJsInBrowser:runningInBrowser
+        /* expected2: */
     },
     {name:'h3-JSON4all' ,value: {$escape:{$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'},e:{$escape:true}}}}},
     {name:'Point'     ,value: new Point(1,2,3.3), 
@@ -81,7 +109,7 @@ describe("JSON4all",function(){
             //if(runningInBrowser) { console.log("FIXTURE", fixture.name); }
             var encoded=JSON4all.stringify(fixture.value);
             if('expectEncode' in fixture){
-                expect(encoded).to.eql(fixture.expectEncode);
+                compareObjects(encoded,fixture.expectEncode);
             }
             var decoded=JSON4all.parse(encoded);
             var expected = 'expected' in fixture?fixture.expected:fixture.value;
@@ -89,16 +117,24 @@ describe("JSON4all",function(){
                 var diffs = selfExplain.assert.allDifferences(decoded,expected);
                 var eql=!diffs;
                 if(!eql){ console.log("--- DIFFS", diffs); console.log('[both]',decoded,expected); }
+                if(!eql){ console.log("--- DISC", discrepances(decoded, expected)); }
                 expect(eql).to.be.ok();
             }
-            if(! fixture.skipExpectedJsInBrowser) {
+            try{
+                compareObjects(decoded,expected);
+            }catch(err){
                 try{
-                    expect(decoded).to.eql(expected);
+                    if(fixture.expected2 && false){
+                        expected=fixture.expected2;
+                        compareObjects(decoded,expected);
+                    }else{
+                        throw err;
+                    }
                 }catch(err){
                     try{
                         var obtainedPart=decoded [1];
                         var expectedPart=expected[1];
-                        expect(obtainedPart).to.eql(expectedPart);
+                        compareObjects(obtainedPart,expectedPart);
                         console.log('--partes iguales');
                     }catch(err){
                         console.log('--partes distintas',obtainedPart,expectedPart,obtainedPart==expectedPart,obtainedPart===expectedPart,typeof obtainedPart,typeof expectedPart);
@@ -138,13 +174,13 @@ describe("JSON4all error conditions",function(){
             };
             expect(diffs).to.not.be.ok();
         }
-        expect(obtained).to.eql(expected);
+        compareObjects(obtained,expected);
     });
     it("very bugy condition in some IE", function(){
         var encoded='{"3":{"$special":"Date","$value":-20736000000}}';
         var expected={"3":new Date(-20736000000)};
         var obtained = JSON4all.parse(encoded);
-        expect(obtained).to.eql(expected);
+        compareObjects(obtained,expected);
         if(selfExplain){
             var diffs = selfExplain.assert.allDifferences(obtained,expected);
             if(diffs){
@@ -152,6 +188,6 @@ describe("JSON4all error conditions",function(){
             };
             expect(diffs).to.not.be.ok();
         }
-        expect(obtained).to.eql(expected);
+        compareObjects(obtained,expected);
     });
 });
