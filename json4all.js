@@ -36,25 +36,7 @@ function constructorName(obj) {
     return functionName(obj.constructor);
 }
 
-var types={
-    Date  : {
-        construct: function construct(value){ 
-            return new Date(value); 
-        }, 
-        deconstruct: function deconstruct(o){
-            return o.getTime();
-        }
-    },
-    RegExp: {
-        construct: function construct(value){ 
-            return new RegExp(value.source, value.flags); 
-        }, 
-        deconstruct: function deconstruct(o){
-            return {source: o.source, flags: o.toString().substring(o.toString().lastIndexOf('/')+1)};
-        }
-    }
-};
-
+var types={};
 var thisPlatformSkipsUndefinedInArrays = true;
 
 JSON.stringify([undefined],function(key, value){
@@ -90,7 +72,7 @@ json4all.directTypes={
     "Array"    : true,
     "anonymous": true,
     ""         : true
-}
+};
 
 json4all.replacer = function replacer(key, value){
     var realValue = this[key];
@@ -122,7 +104,8 @@ json4all.replacer = function replacer(key, value){
     if(json4all.directTypes[typeName]){
         return value;
     }else if(types[typeName]){
-        return {$special:typeName, $value: types[typeName].deconstruct(realValue)};
+        var typeDef=types[typeName];
+        return {$special:'specialTag' in typeDef?typeDef.specialTag(realValue):typeName, $value: typeDef.deconstruct(realValue)};
     }else{
         console.log("JSON4all.stringify unregistered object type", typeName);
         throw new Error("JSON4all.stringify unregistered object type");
@@ -193,16 +176,39 @@ if(thisPlatformHasReplacerBug){
     };
 }
 
-json4all.addType = function addType(typeConstructor){
-    types[functionName(typeConstructor)]={
-        construct: function construct(value){
+json4all.addType = function addType(typeConstructor, functions){
+    functions = functions || {};
+    var constructorName = typeof typeConstructor === 'string'? typeConstructor: functionName(typeConstructor);
+    types[constructorName]={
+        construct: functions.construct || function construct(value){
             return typeConstructor.JSON4reviver(value);
         },
-        deconstruct: function deconstruct(o){
+        deconstruct: functions.deconstruct || function deconstruct(o){
             return o.JSON4replacer();
+        },
+        specialTag: functions.specialTag || function specialTag(value){
+            return constructorName;
         }
     };
 };
+
+json4all.addType(Date,{
+    construct: function construct(value){ 
+        return new Date(value); 
+    }, 
+    deconstruct: function deconstruct(o){
+        return o.getTime();
+    },
+});
+
+json4all.addType(RegExp, {
+    construct: function construct(value){ 
+        return new RegExp(value.source, value.flags); 
+    }, 
+    deconstruct: function deconstruct(o){
+        return {source: o.source, flags: o.toString().substring(o.toString().lastIndexOf('/')+1)};
+    }
+});
 
 return json4all;
 

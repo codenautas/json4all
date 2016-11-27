@@ -5,6 +5,9 @@ var selfExplain = require('self-explain')
 var discrepances = require('discrepances')
 var JSON4all = require('../json4all.js')
 
+var bestGlobals = require('best-globals');
+var date = bestGlobals.date;
+
 var deepEqual;
 
 var runningInBrowser = typeof window !== 'undefined';
@@ -69,6 +72,8 @@ var fixtures=[
     {name:'array'     ,value: [1,"2", false]               },
     {name:'fecha'     ,value: new Date(-20736000000)        , expectEncode: '{"$special":"Date","$value":-20736000000}', check:function(o){ return o instanceof Date; }},
     {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}   , check:function(o){ return o.f instanceof Date; }},
+    {bg:true, name:'fech',value: date.iso("1999-12-31")     , expectEncode: '{"$special":"date","$value":"1999-12-31"}', check:function(o){ return o instanceof Date && o.isRealDate; }},
+    {bg:true, name:'{fech}',value: {a:1, f:date.ymd(2016,2,2)}, check:function(o){ return o.f.isRealDate; }},
     {name:'bigNumber' ,value: 12345678901234567890         },
     {name:'bool'      ,value: true                         },
     {name:'null'      ,value: null                         },
@@ -105,8 +110,15 @@ var fixtures=[
 ];
 
 describe("JSON4all",function(){
+  [false, true].forEach(function(forBestGlobals){ describe(forBestGlobals?'4 best-globals':'normal',function(){
     fixtures.forEach(function(fixture){
+        if(forBestGlobals){
+            before(function(){
+                bestGlobals.registerJson4All(JSON4all);
+            });
+        }
         if(fixture.skip) return;
+        if(!forBestGlobals && fixture.bg) return;
         var withError=false;
         it("fixture "+fixture.name+": "+JSON.stringify(fixture),function(){
             //if(runningInBrowser) { console.log("FIXTURE", fixture.name); }
@@ -150,6 +162,7 @@ describe("JSON4all",function(){
             }
         });
     });
+  }); });
 });
 
 function OtherClass(){
