@@ -19,7 +19,7 @@
     root.globalModuleName = null;
 })(/*jshint -W040 */this, 'json4all', function() {
 /*jshint +W040 */
-
+var Big=require('big.js');
 /*jshint -W004 */
 var json4all = {};
 /*jshint +W004 */
@@ -208,6 +208,15 @@ json4all.addType(RegExp, {
     deconstruct: function deconstruct(o){
         return {source: o.source, flags: o.toString().substring(o.toString().lastIndexOf('/')+1)};
     }
+});
+
+json4all.addType(Big,{
+    construct: function construct(value){ 
+        return new Big(value); 
+    }, 
+    deconstruct: function deconstruct(o){
+        return o.toString();
+    },
 });
 
 return json4all;

@@ -1,7 +1,7 @@
 {
   "name": "json4all",
   "description": "JSON for all purposes and all environments",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "repository": "codenautas/json4all",
   "license": "MIT",
@@ -35,7 +35,8 @@
     "best-globals": "~0.7.0",
     "discrepances": "~0.0.11",
     "require-bro": "~0.1.4",
-    "self-explain": "~0.10.10"
+    "self-explain": "~0.10.10",
+    "type-store":"~0.0.2"
   },
   "engines": {
     "node": ">= 0.12"
