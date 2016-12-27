@@ -19,7 +19,7 @@
     root.globalModuleName = null;
 })(/*jshint -W040 */this, 'json4all', function() {
 /*jshint +W040 */
-var Big=require('big.js');
+
 /*jshint -W004 */
 var json4all = {};
 /*jshint +W004 */
@@ -210,14 +210,7 @@ json4all.addType(RegExp, {
     }
 });
 
-json4all.addType(Big,{
-    construct: function construct(value){ 
-        return new Big(value); 
-    }, 
-    deconstruct: function deconstruct(o){
-        return o.toString();
-    },
-});
+json4all._types = types;
 
 return json4all;
 
