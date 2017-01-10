@@ -36,7 +36,17 @@ function constructorName(obj) {
     return functionName(obj.constructor);
 }
 
-var types={};
+var root;
+
+if(typeof window !== 'undefined'){
+    root = window;
+}else{
+    root = global;
+}
+
+root.json4allRegisteredTypes = root.json4allRegisteredTypes || {};
+var types = root.json4allRegisteredTypes;
+
 var thisPlatformSkipsUndefinedInArrays = true;
 
 JSON.stringify([undefined],function(key, value){
