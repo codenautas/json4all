@@ -58,15 +58,10 @@ JSON.stringify([undefined],function(key, value){
     return value;
 });
 
-/* istanbul ignore next */
-if(thisPlatformSkipsUndefinedInArrays){
-    console.log('thisPlatformSkipsUndefinedInArrays', window.navigator.userAgent)
-}
-
 
 var thisPlatformHasReplacerBug = false;
 
-/* istanbul ignore next */
+/* istanbul ignore next */ // For IE compatibility
 JSON.parse('{"3":"33"}',function(key, value){
     if(value===undefined){
         thisPlatformHasReplacerBug = true;
@@ -95,6 +90,7 @@ json4all.directTypes={
 
 json4all.replacer = function replacer(key, value){
     var realValue = this[key];
+    /* istanbul ignore next */ // For IE compatibility
     if(realValue===InternalValueForUndefined){
         this[key]=undefined;
         return {$special: "undefined"};
@@ -111,6 +107,7 @@ json4all.replacer = function replacer(key, value){
     if('$special' in realValue || '$escape' in realValue){
         return {$escape: realValue};
     }
+    /* istanbul ignore next */ // For IE compatibility
     if(thisPlatformSkipsUndefinedInArrays && realValue instanceof Array){
         for(var i=0; i<realValue.length; i++){
             if(typeof realValue[i] === 'undefined'){
@@ -124,7 +121,8 @@ json4all.replacer = function replacer(key, value){
         return value;
     }else if(types[typeName]){
         var typeDef=types[typeName];
-        return {$special:'specialTag' in typeDef?typeDef.specialTag(realValue):typeName, $value: typeDef.deconstruct(realValue)};
+        return {$special: typeDef.specialTag(realValue), $value: typeDef.deconstruct(realValue)};
+        // return {$special:'specialTag' in typeDef?typeDef.specialTag(realValue):typeName, $value: typeDef.deconstruct(realValue)};
     }else{
         console.log("JSON4all.stringify unregistered object type", typeName);
         throw new Error("JSON4all.stringify unregistered object type");
@@ -171,7 +169,7 @@ json4all.convertPlain2$special = function convertPlain2$special(o, internally){
         for(var key in o){
             /* istanbul ignore next */
             var realKey = o[key]===undefined && !isNaN(key)?Number(key):key;
-            json4all.convertPlain2$special(o[key], internally);
+            json4all.convertPlain2$special(o[key], true);
             var newValue = json4all.reviver(key, o[key]); 
             if(newValue===undefined && !(o instanceof Array)){
                 delete o[key];
@@ -185,6 +183,7 @@ json4all.convertPlain2$special = function convertPlain2$special(o, internally){
     }
 };
 
+/* istanbul ignore next */ // For IE compatibility
 if(thisPlatformHasReplacerBug){
     console.log('thisPlatformHasReplacerBug', window.navigator.userAgent)
     json4all.parse = function parse(text){
