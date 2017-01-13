@@ -7,10 +7,10 @@ node_js:
 matrix:
   fast_finish: true
   allow_failures:
-    - node_js: "7"
+    - node_js: "0.12"
 script: 
   - npm run-script test-cov
-  - npm run-script test-cli -- --browsers PhantomJS Firefox
+  - npm run-script test-cli -- --browsers Firefox
   - npm run-script report
 before_script:
   - export DISPLAY=:99.0
