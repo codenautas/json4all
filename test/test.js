@@ -21,12 +21,44 @@ if(runningInBrowser){
     }
 }
 
-function compareObjects(obtained, expected){
-    if(discrepances(obtained,expected)){
-        console.log('discrepances', discrepances(obtained,expected));
-        expect(obtained).to.eql(expected);
+function compareObjects(obtained, expected, fixture){
+    if(!fixture){
+        if(discrepances(obtained,expected)){
+            console.log('discrepances', discrepances(obtained,expected));
+            expect(obtained).to.eql(expected);
+        }else{
+            deepEqual(obtained,expected);
+        }
     }else{
-        deepEqual(obtained,expected);
+        if(selfExplain){
+            var diffs = selfExplain.assert.allDifferences(obtained,expected);
+            var eql=!diffs;
+            if(!eql){ console.log("--- DIFFS", diffs); console.log('[both]',obtained,expected); }
+            if(!eql){ console.log("--- DISC", discrepances(obtained, expected)); }
+            expect(eql).to.be.ok();
+        }
+        try{
+            compareObjects(obtained,expected);
+        }catch(err){
+            try{
+                if(fixture.expected2 && false){
+                    expected=fixture.expected2;
+                    compareObjects(obtained,expected);
+                }else{
+                    throw err;
+                }
+            }catch(err){
+                try{
+                    var obtainedPart=obtained [1];
+                    var expectedPart=expected[1];
+                    compareObjects(obtainedPart,expectedPart);
+                    console.log('--partes iguales');
+                }catch(err){
+                    console.log('--partes distintas',obtainedPart,expectedPart,obtainedPart==expectedPart,obtainedPart===expectedPart,typeof obtainedPart,typeof expectedPart);
+                }
+                throw err;
+            }
+        }
     }
 }
 
@@ -126,37 +158,12 @@ describe("JSON4all",function(){
             if('expectEncode' in fixture){
                 compareObjects(encoded,fixture.expectEncode);
             }
-            var decoded=JSON4all.parse(encoded);
             var expected = 'expected' in fixture?fixture.expected:fixture.value;
-            if(selfExplain){
-                var diffs = selfExplain.assert.allDifferences(decoded,expected);
-                var eql=!diffs;
-                if(!eql){ console.log("--- DIFFS", diffs); console.log('[both]',decoded,expected); }
-                if(!eql){ console.log("--- DISC", discrepances(decoded, expected)); }
-                expect(eql).to.be.ok();
-            }
-            try{
-                compareObjects(decoded,expected);
-            }catch(err){
-                try{
-                    if(fixture.expected2 && false){
-                        expected=fixture.expected2;
-                        compareObjects(decoded,expected);
-                    }else{
-                        throw err;
-                    }
-                }catch(err){
-                    try{
-                        var obtainedPart=decoded [1];
-                        var expectedPart=expected[1];
-                        compareObjects(obtainedPart,expectedPart);
-                        console.log('--partes iguales');
-                    }catch(err){
-                        console.log('--partes distintas',obtainedPart,expectedPart,obtainedPart==expectedPart,obtainedPart===expectedPart,typeof obtainedPart,typeof expectedPart);
-                    }
-                    throw err;
-                }
-            }
+            var decoded=JSON4all.parse(encoded);
+            compareObjects(decoded, expected, fixture);
+            decoded=JSON.parse(encoded);
+            decoded=JSON4all.convertPlain2$special(decoded);
+            compareObjects(decoded, expected, fixture);
             if('check' in fixture){
                 expect(fixture.check(decoded)).to.ok();
             }

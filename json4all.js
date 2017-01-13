@@ -25,6 +25,7 @@ var json4all = {};
 /*jshint +W004 */
 
 function functionName(fun) {
+    /* istanbul ignore next */
     if('name' in fun){
         return fun.name;
     }else{
@@ -38,6 +39,7 @@ function constructorName(obj) {
 
 var root;
 
+/* istanbul ignore next */
 if(typeof window !== 'undefined'){
     root = window;
 }else{
@@ -56,8 +58,15 @@ JSON.stringify([undefined],function(key, value){
     return value;
 });
 
+/* istanbul ignore next */
+if(thisPlatformSkipsUndefinedInArrays){
+    console.log('thisPlatformSkipsUndefinedInArrays', window.navigator.userAgent)
+}
+
+
 var thisPlatformHasReplacerBug = false;
 
+/* istanbul ignore next */
 JSON.parse('{"3":"33"}',function(key, value){
     if(value===undefined){
         thisPlatformHasReplacerBug = true;
@@ -157,28 +166,30 @@ json4all.stringify = function stringify(value){
     return JSON.stringify(value, json4all.replacer);
 };
 
-if(thisPlatformHasReplacerBug){
-    var reviveAll = function reviveAll(o){
-        if(o!=null && o instanceof Object){
-            for(var key in o){
-                /* istanbul ignore next */
-                var realKey = o[key]===undefined && !isNaN(key)?Number(key):key;
-                // if(o.hasOwnProperty(key)){
-                    reviveAll(o[key]);
-                    var newValue = json4all.reviver(key, o[key]); 
-                    if(newValue===InternalValueForUnset/* && !(o instanceof Array)*/){
-                        delete o[key];
-                    }else{
-                        o[key] = newValue;
-                    }
-                // }
+json4all.convertPlain2$special = function convertPlain2$special(o, internally){
+    if(o!=null && o instanceof Object){
+        for(var key in o){
+            /* istanbul ignore next */
+            var realKey = o[key]===undefined && !isNaN(key)?Number(key):key;
+            json4all.convertPlain2$special(o[key], internally);
+            var newValue = json4all.reviver(key, o[key]); 
+            if(newValue===undefined && !(o instanceof Array)){
+                delete o[key];
+            }else{
+                o[key] = newValue;
             }
         }
-    };
+    }
+    if(!internally){
+        return json4all.reviver('', o);
+    }
+};
+
+if(thisPlatformHasReplacerBug){
+    console.log('thisPlatformHasReplacerBug', window.navigator.userAgent)
     json4all.parse = function parse(text){
         var parsed=JSON.parse(text);
-        reviveAll(parsed);
-        return json4all.reviver('', parsed);
+        return json4all.convertPlain2$special(parsed);
     };
 }else{
     json4all.parse = function parse(text){
