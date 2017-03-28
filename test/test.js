@@ -215,16 +215,8 @@ describe("JSON4all error conditions",function(){
 });
 
 JSON4all.addType(PostgresIntervalParse,{
-    construct: function(value){
-        var interval = PostgresIntervalParse();
-        for(var attr in value){
-            interval[attr] = value[attr];
-        }
-        return interval;
-    },
-    deconstruct: function(interval){
-        return JSON4all.anonymizate(interval);
-    }
+    construct: JSON4all.nonymizate,
+    deconstruct: JSON4all.anonymizate
 })
 
 describe("addType", function(){

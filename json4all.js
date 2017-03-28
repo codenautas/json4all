@@ -94,7 +94,15 @@ json4all.anonymizate = function(classedObject){
         plainObject[attr] = classedObject[attr];
     }
     return plainObject;
-}
+};
+
+json4all.nonymizate = function(value, Constructor){
+    var interval = Constructor();
+    for(var attr in value){
+        interval[attr] = value[attr];
+    }
+    return interval;
+};
 
 json4all.replacer = function replacer(key, value){
     var realValue = this[key];
@@ -150,7 +158,7 @@ json4all.reviver = function reviver(key, value){
         }else if(value.$special==='unset'){
             return undefined;
         }else if(types[value.$special]){
-            return new types[value.$special].construct(value.$value);
+            return new types[value.$special].construct(value.$value, types[value.$special].constructor);
         }else{
             console.log("JSON4all.parse invalid $special", value.$special);
             throw new Error("JSON4all.parse invalid $special");
@@ -218,6 +226,9 @@ json4all.addType = function addType(typeConstructor, functions){
             return constructorName;
         }
     };
+    if(typeof typeConstructor === 'function'){
+        types[constructorName].constructor = typeConstructor;
+    }
 };
 
 json4all.addType(Date,{
