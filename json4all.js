@@ -97,7 +97,7 @@ json4all.anonymizate = function(classedObject){
 };
 
 json4all.nonymizate = function(value, Constructor){
-    var interval = Constructor();
+    var interval = new Constructor();
     for(var attr in value){
         interval[attr] = value[attr];
     }

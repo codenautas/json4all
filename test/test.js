@@ -222,12 +222,22 @@ JSON4all.addType(PostgresIntervalParse,{
 describe("addType", function(){
     describe("PostgresInterval", function(){
         [
-            {text: "1 day", expectedJson:'{"$special":"PostgresInterval","$value":{"days":1,"toPostgres":{"$special":"unset"},"toISO":{"$special":"unset"}}}'},
-            {text: "1 year 2 month 3 days 4:05:06"},
-            {text: "10:30"},
+            {text: "1 day", o:{days: 1}, expectedJson:(
+                PostgresIntervalParse["4client"] ? '{"$special":"PostgresInterval","$value":{"days":1}}'
+                : '{"$special":"PostgresInterval","$value":{"days":1,"toPostgres":{"$special":"unset"},"toISO":{"$special":"unset"}}}'
+            )},
+            {text: "1 year 2 month 3 days 4:05:06", o:{years:1, months:2, days:3, hours:4, minutes:5, seconds:6}},
+            {text: "10:30", o:{hours: 10, minutes:30}},
         ].forEach(function(fixture){
             it("handles interval "+fixture.text, function(){
-                var interval = PostgresIntervalParse(fixture.text);
+                if(PostgresIntervalParse["4client"]){
+                    var interval = new PostgresIntervalParse();
+                    for(var attr in fixture.o){
+                        interval[attr] = fixture.o[attr];
+                    }
+                }else{
+                    var interval = PostgresIntervalParse(fixture.text);
+                }
                 var intervalJson = JSON4all.stringify(interval);
                 if(fixture.expectedJson){
                     expect(intervalJson).to.eql(fixture.expectedJson);
