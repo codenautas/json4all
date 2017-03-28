@@ -132,9 +132,6 @@ json4all.replacer = function replacer(key, value){
         }
         return realValue;
     }
-    if('toPostgres' in value){
-			return value['toPostgres']();
-	}
     var typeName = constructorName(realValue);
     if(json4all.directTypes[typeName]){
         return value;
