@@ -8,6 +8,8 @@ var JSON4all = require('../json4all.js')
 var bestGlobals = require('best-globals');
 var date = bestGlobals.date;
 
+var PostgresIntervalParse = require('postgres-interval');
+
 var deepEqual;
 
 var runningInBrowser = typeof window !== 'undefined';
@@ -23,18 +25,15 @@ if(runningInBrowser){
 
 function compareObjects(obtained, expected, fixture){
     if(!fixture){
-        if(discrepances(obtained,expected)){
-            console.log('discrepances', discrepances(obtained,expected));
-            expect(obtained).to.eql(expected);
-        }else{
-            deepEqual(obtained,expected);
-        }
+        discrepances.showAndThrow(obtained,expected);
+        expect(obtained).to.eql(expected);
+        deepEqual(obtained,expected);
     }else{
         if(selfExplain){
             var diffs = selfExplain.assert.allDifferences(obtained,expected);
             var eql=!diffs;
             if(!eql){ console.log("--- DIFFS", diffs); console.log('[both]',obtained,expected); }
-            if(!eql){ console.log("--- DISC", discrepances(obtained, expected)); }
+            discrepances.showAndThrow(obtained,expected);
             expect(eql).to.be.ok();
         }
         try{
@@ -212,5 +211,39 @@ describe("JSON4all error conditions",function(){
             expect(diffs).to.not.be.ok();
         }
         compareObjects(obtained,expected);
+    });
+});
+
+JSON4all.addType(PostgresIntervalParse,{
+    construct: function(value){
+        var interval = PostgresIntervalParse();
+        for(var attr in value){
+            interval[attr] = value[attr];
+        }
+        return interval;
+    },
+    deconstruct: function(interval){
+        return JSON4all.anonymizate(interval);
+    }
+})
+
+describe("addType", function(){
+    describe("PostgresInterval", function(){
+        [
+            {text: "1 day", expectedJson:'{"$special":"PostgresInterval","$value":{"days":1,"toPostgres":{"$special":"unset"},"toISO":{"$special":"unset"}}}'},
+            {text: "1 year 2 month 3 days 4:05:06"},
+            {text: "10:30"},
+        ].forEach(function(fixture){
+            it("handles interval "+fixture.text, function(){
+                var interval = PostgresIntervalParse(fixture.text);
+                var intervalJson = JSON4all.stringify(interval);
+                if(fixture.expectedJson){
+                    expect(intervalJson).to.eql(fixture.expectedJson);
+                }
+                var resurrected = JSON4all.parse(intervalJson);
+                expect(resurrected).to.eql(interval);
+                expect(resurrected instanceof interval.constructor);
+            });
+        });
     });
 });

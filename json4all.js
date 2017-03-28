@@ -88,6 +88,14 @@ json4all.directTypes={
     ""         : true
 };
 
+json4all.anonymizate = function(classedObject){
+    var plainObject={};
+    for(var attr in classedObject){
+        plainObject[attr] = classedObject[attr];
+    }
+    return plainObject;
+}
+
 json4all.replacer = function replacer(key, value){
     var realValue = this[key];
     /* istanbul ignore next */ // For IE compatibility
