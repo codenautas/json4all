@@ -1,7 +1,7 @@
 {
   "name": "json4all",
   "description": "JSON for all purposes and all environments",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "repository": "codenautas/json4all",
   "license": "MIT",
@@ -10,17 +10,17 @@
   "dependencies": {
   },
   "devDependencies": {
-    "body-parser": "~1.17.1",
+    "body-parser": "~1.17.2",
     "cookie-parser": "~1.4.3",
-    "esprima": "~3.1.3",
+    "esprima": "~4.0.0",
     "expect.js": "~0.3.1",
-    "express": "~4.15.2",
-    "express-session": "~1.15.2",
+    "express": "~4.15.3",
+    "express-session": "~1.15.3",
     "express-useragent": "~1.0.7",
     "istanbul": "~0.4.5",
     "JSON": "1.0.0",
-    "karma": "~1.5.0",
-    "karma-chrome-launcher": "~2.0.0",
+    "karma": "~1.7.0",
+    "karma-chrome-launcher": "~2.2.0",
     "karma-coverage": "~1.1.1",
     "karma-coverage-html-index-reporter": "~1.0.2",
     "karma-expect": "~1.1.3",
@@ -30,15 +30,15 @@
     "karma-phantomjs-launcher": "~1.0.4",
     "karma-safari-launcher": "~1.0.0",
     "istanbul-middleware": "~0.2.2",
-    "mocha": "~3.2.0",
+    "mocha": "~3.4.2",
     "phantomjs-prebuilt": "~2.1.14",
     "postgres-interval": "~1.1.0",
     
-    "best-globals": "~0.8.0",
-    "discrepances": "~0.1.0",
-    "require-bro": "~0.1.4",
-    "self-explain": "~0.10.11",
-    "type-store": "~0.1.0"
+    "best-globals": "~0.9.4",
+    "discrepances": "~0.1.4",
+    "require-bro": "~0.1.5",
+    "self-explain": "~0.10.13",
+    "type-store": "~0.1.7"
   },
   "engines": {
     "node": ">= 0.12"
