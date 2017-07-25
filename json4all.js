@@ -135,13 +135,15 @@ json4all.replacer = function replacer(key, value){
     var typeName = constructorName(realValue);
     if(json4all.directTypes[typeName]){
         return value;
-    }else if(types[typeName]){
-        var typeDef=types[typeName];
-        return {$special: typeDef.specialTag(realValue), $value: typeDef.deconstruct(realValue)};
-        // return {$special:'specialTag' in typeDef?typeDef.specialTag(realValue):typeName, $value: typeDef.deconstruct(realValue)};
     }else{
-        console.log("JSON4all.stringify unregistered object type", typeName);
-        throw new Error("JSON4all.stringify unregistered object type");
+        var typeDef=types[typeName];
+        if(typeDef){
+            return {$special: typeDef.specialTag(realValue), $value: typeDef.deconstruct(realValue)};
+            // return {$special:'specialTag' in typeDef?typeDef.specialTag(realValue):typeName, $value: typeDef.deconstruct(realValue)};
+        }else{
+            console.log("JSON4all.stringify unregistered object type", typeName);
+            throw new Error("JSON4all.stringify unregistered object type");
+        }
     }
 };
 
@@ -157,11 +159,14 @@ json4all.reviver = function reviver(key, value){
             return InternalValueForUndefined;
         }else if(value.$special==='unset'){
             return undefined;
-        }else if(types[value.$special]){
-            return new types[value.$special].construct(value.$value, types[value.$special].constructor);
         }else{
-            console.log("JSON4all.parse invalid $special", value.$special);
-            throw new Error("JSON4all.parse invalid $special");
+            var typeDef=types[value.$special];
+            if(typeDef){
+                return new typeDef.construct(value.$value, typeDef.constructor);
+            }else{
+                console.log("JSON4all.parse invalid $special", value.$special);
+                throw new Error("JSON4all.parse invalid $special");
+            }
         }
     }else if(value!==null && value.$escape){
         return value.$escape;

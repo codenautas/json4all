@@ -8,6 +8,8 @@ var JSON4all = require('../json4all.js')
 var bestGlobals = require('best-globals');
 var date = bestGlobals.date;
 
+var PostgresIntervalParse = require('postgres-interval');
+
 var deepEqual;
 
 var runningInBrowser = typeof window !== 'undefined';
@@ -212,7 +214,6 @@ describe("JSON4all error conditions",function(){
     });
 });
 
-/*
 JSON4all.addType(PostgresIntervalParse,{
     construct: JSON4all.nonymizate,
     deconstruct: JSON4all.anonymizate
@@ -248,4 +249,3 @@ describe("addType", function(){
         });
     });
 });
-*/
