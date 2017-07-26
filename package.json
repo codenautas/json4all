@@ -1,7 +1,7 @@
 {
   "name": "json4all",
   "description": "JSON for all purposes and all environments",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "repository": "codenautas/json4all",
   "license": "MIT",
@@ -34,7 +34,7 @@
     "phantomjs-prebuilt": "~2.1.14",
     "postgres-interval": "~1.1.1",
     
-    "best-globals": "~0.9.10",
+    "best-globals": "~0.9.12",
     "discrepances": "~0.1.4",
     "require-bro": "~0.1.5",
     "type-store": "~0.1.11"
