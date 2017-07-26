@@ -1,7 +1,6 @@
 "use strict";
 
 var expect = require('expect.js')
-var selfExplain = require('self-explain')
 var discrepances = require('discrepances')
 var JSON4all = require('../json4all.js')
 
@@ -29,13 +28,7 @@ function compareObjects(obtained, expected, fixture){
         expect(obtained).to.eql(expected);
         deepEqual(obtained,expected);
     }else{
-        if(selfExplain){
-            var diffs = selfExplain.assert.allDifferences(obtained,expected);
-            var eql=!diffs;
-            if(!eql){ console.log("--- DIFFS", diffs); console.log('[both]',obtained,expected); }
-            discrepances.showAndThrow(obtained,expected);
-            expect(eql).to.be.ok();
-        }
+        discrepances.showAndThrow(obtained,expected);
         try{
             compareObjects(obtained,expected);
         }catch(err){
@@ -189,13 +182,7 @@ describe("JSON4all error conditions",function(){
         var encoded='{"3":33}';
         var expected={"3":33};
         var obtained = JSON4all.parse(encoded);
-        if(selfExplain){
-            var diffs = selfExplain.assert.allDifferences(obtained,expected);
-            if(diffs){
-                console.log(diffs)
-            };
-            expect(diffs).to.not.be.ok();
-        }
+        discrepances.showAndThrow(obtained,expected);
         compareObjects(obtained,expected);
     });
     it("very bugy condition in some IE", function(){
@@ -203,13 +190,7 @@ describe("JSON4all error conditions",function(){
         var expected={"3":new Date(-20736000000)};
         var obtained = JSON4all.parse(encoded);
         compareObjects(obtained,expected);
-        if(selfExplain){
-            var diffs = selfExplain.assert.allDifferences(obtained,expected);
-            if(diffs){
-                console.log(diffs)
-            };
-            expect(diffs).to.not.be.ok();
-        }
+        discrepances.showAndThrow(obtained,expected);
         compareObjects(obtained,expected);
     });
 });
