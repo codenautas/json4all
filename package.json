@@ -14,8 +14,8 @@
     "cookie-parser": "~1.4.3",
     "esprima": "~4.0.0",
     "expect.js": "~0.3.1",
-    "express": "~4.15.3",
-    "express-session": "~1.15.4",
+    "express": "~4.15.4",
+    "express-session": "~1.15.5",
     "express-useragent": "~1.0.7",
     "istanbul": "~0.4.5",
     "JSON": "1.0.0",
@@ -30,14 +30,14 @@
     "karma-phantomjs-launcher": "~1.0.4",
     "karma-safari-launcher": "~1.0.0",
     "istanbul-middleware": "~0.2.2",
-    "mocha": "~3.4.2",
-    "phantomjs-prebuilt": "~2.1.14",
+    "mocha": "~3.5.0",
+    "phantomjs-prebuilt": "~2.1.15",
     "postgres-interval": "~1.1.1",
     
-    "best-globals": "~0.9.12",
+    "best-globals": "~0.9.16",
     "discrepances": "~0.1.4",
     "require-bro": "~0.1.5",
-    "type-store": "~0.1.11"
+    "type-store": "~0.1.12"
   },
   "engines": {
     "node": ">= 0.12"

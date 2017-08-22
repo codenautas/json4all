@@ -7,8 +7,6 @@ var JSON4all = require('../json4all.js')
 var bestGlobals = require('best-globals');
 var date = bestGlobals.date;
 
-var PostgresIntervalParse = require('postgres-interval');
-
 var deepEqual;
 
 var runningInBrowser = typeof window !== 'undefined';
