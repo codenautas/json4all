@@ -14,7 +14,7 @@ module.exports = function(config, preConfig) {
     // list of files / patterns to load in the browser
     files: [
       'node_modules/require-bro/lib/require-bro.js',
-      'test/postgres-interval4client.js',
+      'test/example-class.js',
       'node_modules/express-useragent/lib/express-useragent.js',
       'node_modules/best-globals/best-globals.js',
       'node_modules/discrepances/lib/discrepances.js',

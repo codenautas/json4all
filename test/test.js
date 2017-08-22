@@ -2,7 +2,9 @@
 
 var expect = require('expect.js')
 var discrepances = require('discrepances')
-var JSON4all = require('../json4all.js')
+var JSON4all = require('../json4all.js');
+
+var ExampleClass = ExampleClass = require('./example-class.js');
 
 var bestGlobals = require('best-globals');
 var date = bestGlobals.date;
@@ -193,29 +195,29 @@ describe("JSON4all error conditions",function(){
     });
 });
 
-JSON4all.addType(PostgresIntervalParse,{
+JSON4all.addType(ExampleClass,{
     construct: JSON4all.nonymizate,
     deconstruct: JSON4all.anonymizate
 })
 
 describe("addType", function(){
-    describe("PostgresInterval", function(){
+    describe("ExampleClass", function(){
         [
             {text: "1 day", o:{days: 1}, expectedJson:(
-                PostgresIntervalParse["4client"] ? '{"$special":"PostgresInterval","$value":{"days":1}}'
-                : '{"$special":"PostgresInterval","$value":{"days":1,"toPostgres":{"$special":"unset"},"toISO":{"$special":"unset"}}}'
+                ExampleClass["4client"] ? '{"$special":"ExampleClass","$value":{"days":1}}'
+                : '{"$special":"ExampleClass","$value":{"days":1,"toISO":{"$special":"unset"}}}'
             )},
             {text: "1 year 2 month 3 days 4:05:06", o:{years:1, months:2, days:3, hours:4, minutes:5, seconds:6}},
             {text: "10:30", o:{hours: 10, minutes:30}},
         ].forEach(function(fixture){
             it("handles interval "+fixture.text, function(){
-                if(PostgresIntervalParse["4client"]){
-                    var interval = new PostgresIntervalParse();
+                if(ExampleClass["4client"]){
+                    var interval = new ExampleClass();
                     for(var attr in fixture.o){
                         interval[attr] = fixture.o[attr];
                     }
                 }else{
-                    var interval = PostgresIntervalParse(fixture.text);
+                    var interval = ExampleClass(fixture.text);
                 }
                 var intervalJson = JSON4all.stringify(interval);
                 if(fixture.expectedJson){
