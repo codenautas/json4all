@@ -33,7 +33,7 @@
     "mocha": "~3.5.0",
     "phantomjs-prebuilt": "~2.1.15",
     
-    "best-globals": "~0.9.16",
+    "best-globals": "~0.10.0",
     "discrepances": "~0.1.4",
     "require-bro": "~0.1.5",
     "type-store": "~0.1.12"
