@@ -8,6 +8,7 @@ var ExampleClass = ExampleClass = require('./example-class.js');
 
 var bestGlobals = require('best-globals');
 var date = bestGlobals.date;
+var datetime = bestGlobals.datetime;
 
 var deepEqual;
 
@@ -98,6 +99,8 @@ var fixtures=[
     {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}   , check:function(o){ return o.f instanceof Date; }},
     {bg:true, name:'fech',value: date.iso("1999-12-31")     , expectEncode: '{"$special":"date","$value":"1999-12-31"}', check:function(o){ return o instanceof Date && o.isRealDate; }},
     {bg:true, name:'{fech}',value: {a:1, f:date.ymd(2016,2,2)}, check:function(o){ return o.f.isRealDate; }},
+    {bg:true, name:'datetime',value: datetime.iso("1999-12-31")     , expectEncode: '{"$special":"Datetime","$value":"1999-12-31"}', check:function(o){ return o instanceof bestGlobals.Datetime; }},
+    {bg:true, name:'{datetime}',value: {a:1, f:datetime.ymdHms(2016,2,2,12,1,2)}, check:function(o){ return o.f instanceof bestGlobals.Datetime; }},
     {name:'bigNumber' ,value: 12345678901234567890         },
     {name:'bool'      ,value: true                         },
     {name:'null'      ,value: null                         },

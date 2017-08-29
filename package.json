@@ -1,7 +1,7 @@
 {
   "name": "json4all",
   "description": "JSON for all purposes and all environments",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "repository": "codenautas/json4all",
   "license": "MIT",
@@ -33,10 +33,10 @@
     "mocha": "~3.5.0",
     "phantomjs-prebuilt": "~2.1.15",
     
-    "best-globals": "~0.10.0",
-    "discrepances": "~0.1.4",
+    "best-globals": "~0.10.1",
+    "discrepances": "~0.2.1",
     "require-bro": "~0.1.5",
-    "type-store": "~0.1.12"
+    "type-store": "~0.2.0"
   },
   "engines": {
     "node": ">= 0.12"
