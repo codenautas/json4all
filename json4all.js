@@ -217,9 +217,12 @@ if(thisPlatformHasReplacerBug){
     };
 }
 
-json4all.addType = function addType(typeConstructor, functions){
+json4all.addType = function addType(typeConstructor, functions, skipIfExists){
     functions = functions || {};
     var constructorName = typeof typeConstructor === 'string'? typeConstructor: functionName(typeConstructor);
+    if(skipIfExists && types[constructorName]){
+        return;
+    }
     types[constructorName]={
         construct: functions.construct || function construct(value){
             return typeConstructor.JSON4reviver(value);
