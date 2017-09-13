@@ -246,7 +246,7 @@ json4all.addType(Date,{
     deconstruct: function deconstruct(o){
         return o.getTime();
     },
-});
+}, true);
 
 json4all.addType(RegExp, {
     construct: function construct(value){ 
