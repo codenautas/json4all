@@ -96,10 +96,10 @@ json4all.anonymizate = function(classedObject){
     return plainObject;
 };
 
-json4all.nonymizate = function(value, Constructor){
+json4all.nonymizate = function(plainValue, Constructor){
     var typedValue = new Constructor();
-    for(var attr in value){
-        typedValue[attr] = value[attr];
+    for(var attr in plainValue){
+        typedValue[attr] = plainValue[attr];
     }
     return typedValue;
 };
@@ -147,38 +147,38 @@ json4all.replacer = function replacer(key, value){
     }
 };
 
-json4all.reviver = function reviver(key, value){
+json4all.reviver = function reviver(key, plainValue){
     var log=false;
     if(key==='$escape'){
-        return value;
-    }else if(value!==null && value.$special){
-        if(value.$special==='undefined'){ 
+        return plainValue;
+    }else if(plainValue!==null && plainValue.$special){
+        if(plainValue.$special==='undefined'){ 
             if(key===''){
                 return undefined;
             }
             return InternalValueForUndefined;
-        }else if(value.$special==='unset'){
+        }else if(plainValue.$special==='unset'){
             return undefined;
         }else{
-            var typeDef=types[value.$special];
+            var typeDef=types[plainValue.$special];
             if(typeDef){
-                return new typeDef.construct(value.$value, typeDef.constructor);
+                return new typeDef.construct(plainValue.$value, typeDef.constructor);
             }else{
-                console.log("JSON4all.parse invalid $special", value.$special);
+                console.log("JSON4all.parse invalid $special", plainValue.$special);
                 throw new Error("JSON4all.parse invalid $special");
             }
         }
-    }else if(value!==null && value.$escape){
-        return value.$escape;
+    }else if(plainValue!==null && plainValue.$escape){
+        return plainValue.$escape;
     }
-    if(value instanceof Object){
-        for(var k in value){
-            if(value[k]===InternalValueForUndefined){
-                value[k]=undefined;
+    if(plainValue instanceof Object){
+        for(var k in plainValue){
+            if(plainValue[k]===InternalValueForUndefined){
+                plainValue[k]=undefined;
             }
         }
     }
-    return value;
+    return plainValue;
 };
 
 json4all.stringify = function stringify(value){
@@ -224,8 +224,8 @@ json4all.addType = function addType(typeConstructor, functions, skipIfExists){
         return;
     }
     types[constructorName]={
-        construct: functions.construct || function construct(value){
-            return typeConstructor.JSON4reviver(value);
+        construct: functions.construct || function construct(plainValue, constructor){
+            return typeConstructor.JSON4reviver(plainValue, constructor);
         },
         deconstruct: functions.deconstruct || function deconstruct(o){
             return o.JSON4replacer();
@@ -240,8 +240,8 @@ json4all.addType = function addType(typeConstructor, functions, skipIfExists){
 };
 
 json4all.addType(Date,{
-    construct: function construct(value){ 
-        return new Date(value); 
+    construct: function construct(plainValue){ 
+        return new Date(plainValue); 
     }, 
     deconstruct: function deconstruct(o){
         return o.getTime();
@@ -249,8 +249,8 @@ json4all.addType(Date,{
 }, true);
 
 json4all.addType(RegExp, {
-    construct: function construct(value){ 
-        return new RegExp(value.source, value.flags); 
+    construct: function construct(plainValue){ 
+        return new RegExp(plainValue.source, plainValue.flags); 
     }, 
     deconstruct: function deconstruct(o){
         return {source: o.source, flags: o.toString().substring(o.toString().lastIndexOf('/')+1)};

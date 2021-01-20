@@ -23,15 +23,17 @@ if(runningInBrowser){
     }
 }
 
-function compareObjects(obtained, expected, fixture){
+function compareObjects(obtained, expected, fixture, skipDeepEqual){
     if(!fixture){
         discrepances.showAndThrow(obtained,expected);
         expect(obtained).to.eql(expected);
-        deepEqual(obtained,expected);
+        if(!skipDeepEqual){
+            deepEqual(obtained,expected);
+        }
     }else{
         discrepances.showAndThrow(obtained,expected);
         try{
-            compareObjects(obtained,expected);
+            compareObjects(obtained,expected, null, skipDeepEqual);
         }catch(err){
             try{
                 if(fixture.expected2 && false){
@@ -97,8 +99,8 @@ var fixtures=[
     {name:'array'     ,value: [1,"2", false]               },
     {name:'fecha'     ,value: new Date(-20736000000)        , expectEncode: '{"$special":"Date","$value":-20736000000}', check:function(o){ return o instanceof Date; }},
     {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}   , check:function(o){ return o.f instanceof Date; }},
-    {bg:true, name:'fech',value: date.iso("1999-12-31")     , expectEncode: '{"$special":"date","$value":"1999-12-31"}', check:function(o){ return o instanceof Date && o.isRealDate; }},
-    {bg:true, name:'{fech}',value: {a:1, f:date.ymd(2016,2,2)}, check:function(o){ return o.f.isRealDate; }},
+    {bg:true, name:'fech',value: date.iso("1999-12-31")     , expectEncode: '{"$special":"date","$value":"1999-12-31"}', check:function(o){ return o instanceof Date && o.isRealDate; }, skipDeepEqual:true},
+    {bg:true, name:'{fech}',value: {a:1, f:date.ymd(2016,2,2)}, check:function(o){ return o.f.isRealDate; }, skipDeepEqual:true},
     {bg:true, name:'datetime',value: datetime.iso("1999-12-31")     , expectEncode: '{"$special":"Datetime","$value":"1999-12-31"}', check:function(o){ return o instanceof bestGlobals.Datetime; }},
     {bg:true, name:'{datetime}',value: {a:1, f:datetime.ymdHms(2016,2,2,12,1,2)}, check:function(o){ return o.f instanceof bestGlobals.Datetime; }},
     {name:'bigNumber' ,value: 12345678901234567890         },
@@ -155,10 +157,10 @@ describe("JSON4all",function(){
             }
             var expected = 'expected' in fixture?fixture.expected:fixture.value;
             var decoded=JSON4all.parse(encoded);
-            compareObjects(decoded, expected, fixture);
+            compareObjects(decoded, expected, fixture, fixture.skipDeepEqual);
             decoded=JSON.parse(encoded);
             decoded=JSON4all.convertPlain2$special(decoded);
-            compareObjects(decoded, expected, fixture);
+            compareObjects(decoded, expected, fixture, fixture, fixture.skipDeepEqual);
             if('check' in fixture){
                 expect(fixture.check(decoded)).to.ok();
             }

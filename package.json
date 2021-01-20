@@ -1,14 +1,13 @@
 {
   "name": "json4all",
   "description": "JSON for all purposes and all environments",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "repository": "codenautas/json4all",
   "license": "MIT",
   "main": "json4all.js",
   "files": [],
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "body-parser": "~1.18.1",
     "cookie-parser": "~1.4.3",
@@ -32,7 +31,6 @@
     "istanbul-middleware": "~0.2.2",
     "mocha": "~3.5.3",
     "phantomjs-prebuilt": "~2.1.15",
-    
     "best-globals": "~0.10.1",
     "discrepances": "~0.2.2",
     "require-bro": "~0.1.5",
