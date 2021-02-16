@@ -44,10 +44,10 @@
     "node": ">= 0.12"
   },
   "scripts": {
-    "test": "tsc -p test/ts && mocha --reporter spec --bail --recursive --check-leaks test/**/tes*.js",
+    "test": "tsc -p test/ts && mocha --reporter spec --bail --recursive --check-leaks test/**/test*.js",
     "test-nc": "mocha --reporter spec --bail --check-leaks --no-colors test/",
     "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
-    "test-cov": "tsc -p test/ts && istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --recursive --check-leaks test/**/tes*.js",
+    "test-cov": "tsc -p test/ts && istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --recursive --check-leaks test/**/test*.js",
     "start": "node example/server.js",
     "test-cli": "node server/karma-server.js --karma karma.conf.js --single-run",
     "test-cli-h": "node server/karma-server.js --karma karma.conf.js",

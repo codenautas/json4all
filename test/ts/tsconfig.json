@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "outDir":"../trans",
+        "outDir":"../js",
         "strict": true,
         "target": "ES2019",
         "module": "none",
