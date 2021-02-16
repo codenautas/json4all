@@ -39,6 +39,31 @@ describe("---- TYPESCRIPT Referenceable objects", ()=>{
         assert(two instanceof Two);
         assert.equal(two.name, "Name");
     })
+    it("inexistent collection", ()=>{
+        assert.throws(()=>{
+            JSON4all.parse(`{"$ref":[["InexistentCollection"],"two"],"$special":"Two","$value":{"name":"Other","more":1}}`);
+        },"xxx");
+    })
+    it("inexistent key", ()=>{
+        assert.throws(()=>{
+            JSON4all.parse(`{"$ref":[["TheCollection"],"no-key"],"$special":"Two","$value":{"name":"Other","more":1}}`);
+        },"xxx");
+    })
+    it("rejects to one instance in two places",()=>{
+        var two = new Two('Name');
+        collection.two = two;
+        collection.two = two;
+        assert.throws(()=>{
+            collection.dos = two;
+        },"xxx");
+    })
+    it("rejects class without properties", ()=>{
+        assert.throws(()=>{
+            @JSON4all.addClass
+            class NoParams{}
+            console.log(!NoParams)
+        },"xxx");
+    })
 })
 
 @JSON4all.addClass

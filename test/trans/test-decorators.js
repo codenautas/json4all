@@ -46,6 +46,34 @@ describe("---- TYPESCRIPT Referenceable objects", () => {
         assert_1.strict(two instanceof Two);
         assert_1.strict.equal(two.name, "Name");
     });
+    it("inexistent collection", () => {
+        assert_1.strict.throws(() => {
+            JSON4all.parse(`{"$ref":[["InexistentCollection"],"two"],"$special":"Two","$value":{"name":"Other","more":1}}`);
+        }, "xxx");
+    });
+    it("inexistent key", () => {
+        assert_1.strict.throws(() => {
+            JSON4all.parse(`{"$ref":[["TheCollection"],"no-key"],"$special":"Two","$value":{"name":"Other","more":1}}`);
+        }, "xxx");
+    });
+    it("rejects to one instance in two places", () => {
+        var two = new Two('Name');
+        collection.two = two;
+        collection.two = two;
+        assert_1.strict.throws(() => {
+            collection.dos = two;
+        }, "xxx");
+    });
+    it("rejects class without properties", () => {
+        assert_1.strict.throws(() => {
+            let NoParams = class NoParams {
+            };
+            NoParams = __decorate([
+                JSON4all.addClass
+            ], NoParams);
+            console.log(!NoParams);
+        }, "xxx");
+    });
 });
 let ThreeBase = class ThreeBase {
     constructor(id) {

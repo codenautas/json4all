@@ -163,7 +163,6 @@ json4all.reviver = function reviver(key, plainValue){
     }else if(plainValue!==null && plainValue.$ref && json4all.$RefStoreSpace){
         var collection = json4all.$RefStoreSpace[plainValue.$ref[0][0]]
         if(!collection){
-            console.log('********* json4all ref collection invalid', plainValue, json4all.$RefStoreSpace)
             throw new Error("json4all ref collection invalid");
         }
         var object = collection[plainValue.$ref[1]];
@@ -202,7 +201,6 @@ json4all.reviver = function reviver(key, plainValue){
     }
     if(plainValue !=null && plainValue.$ref){
         result[RefKey] = plainValue.$ref
-        console.log('**********', plainValue, result)
     }
     return result;
 };
@@ -320,7 +318,7 @@ json4all.RefStore = (path)=>{
                 value[RefKey] = [path, prop];
             }else if(
                 // @ts-expect-error RefKey no está en el tipo original
-                value[RefKey][0] != key
+                value[RefKey][1] != prop
             ){
                 console.log("This value was stored in another place", path, prop)
                 throw new Error("This value was stored in another place")
@@ -336,7 +334,6 @@ json4all.$props2serialize = Symbol("props2serialize")
 
 json4all.addProperty = function(constructorPosition){
     var innerFunction = (classPrototype, prop, index)=>{
-        console.log('////////////////////////// addProperty',classPrototype, prop, index)
         if(!(json4all.$props2serialize in classPrototype)){
             classPrototype[json4all.$props2serialize] = []
         }
@@ -361,7 +358,6 @@ json4all.replacerFromProps2serialize = function(){
 }
 
 json4all.addClass = (constructor)=>{
-    console.log(constructor);
     if(!(json4all.$props2serialize in constructor.prototype)){
         throw new Error("must add parameters or properties")
     }

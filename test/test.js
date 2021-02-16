@@ -209,6 +209,11 @@ JSON4all.addType(ExampleClass,{
     deconstruct: JSON4all.anonymizate
 })
 
+JSON4all.addType(ExampleClass,{
+    construct: JSON4all.nonymizate,
+    deconstruct: JSON4all.anonymizate
+},true)
+
 describe("addType", function(){
     describe("ExampleClass", function(){
         [
