@@ -8,14 +8,12 @@ JSON for all purposes and all platforms
 [!--lang:*-->
 
 <!-- cucardas -->
-![extending](https://img.shields.io/badge/stability-extending-orange.svg)
+![stable](https://img.shields.io/badge/stability-stable-blue.svg)
 [![npm-version](https://img.shields.io/npm/v/json4all.svg)](https://npmjs.org/package/json4all)
 [![downloads](https://img.shields.io/npm/dm/json4all.svg)](https://npmjs.org/package/json4all)
 [![build](https://img.shields.io/travis/codenautas/json4all/master.svg)](https://travis-ci.org/codenautas/json4all)
 [![coverage](https://img.shields.io/coveralls/codenautas/json4all/master.svg)](https://coveralls.io/r/codenautas/json4all)
-[![climate](https://img.shields.io/codeclimate/github/codenautas/json4all.svg)](https://codeclimate.com/github/codenautas/json4all)
 [![dependencies](https://img.shields.io/david/codenautas/json4all.svg)](https://david-dm.org/codenautas/json4all)
-[![qa-control](http://codenautas.com/github/codenautas/json4all.svg)](http://codenautas.com/github/codenautas/json4all)
 
 
 <!--multilang buttons-->
@@ -43,6 +41,13 @@ Reemplazar **JSON** por una función que
   * Objetos y arreglos que contengan *undefined*
   * Tipos definidos por el usuario
 * sea seguro, o sea no codifique funciones (**Function**)
+* tenga un mecanismo para intercambiar objetos entre el frontend y el backend que:
+  * Envíe al frontend una copia del objeto que tenga solo las propiedades que correponda, 
+  para esconder la implementación o información que no debe salir del backend
+  * Envíe al frontend una referencia de objeto que permita identificar 
+  la instancia precisa dentro del backend. 
+  Así el frontend recibe una copia de las propiedades que correspondan 
+  y un modo de identificar al objeto preciso del backend. 
 
 <!--lang:en--]
 # Main goal
@@ -54,6 +59,9 @@ Replace **JSON** by a function that
   * Objects and Arrays that contains **undefined**
   * User defined types
 * be sure, ie dont encode **Function**
+* have a way to exchange objects between the front-end and the back-end:
+  * sending to the front-end only the properties that the front-end must known,
+  * sending to the front-end a reference to the instance of that object in the back-end
 
 [!--lang:*-->
 ```js
@@ -103,6 +111,124 @@ var p = new Point();
 var q = JSON4all.parse(JSON4all.stingify(p));
 
 console.log(q instanceof Point); // true
+```
+## @JSON4all.addClass
+
+<!--lang:es-->
+
+Decorator que registra la clase definida.
+
+Se deben indicar qué propiedades deben serializarse con `addProperty`. 
+Cuando una propiedad es parámetro del constructor principal de la clase 
+hay que indicar el orden (comenzando en 1) con `addProperty(n)`
+
+<!--lang:en--]
+
+Decorator that registers the class
+
+You must define with `addProperty` with properties you want to serialize. 
+If a property is in the class main constructor you must use `addProperty(n)`
+(startin with 1).
+
+[!--lang:*-->
+
+```ts
+var JSON4all = require('json4all');
+
+@JSON4all.addClass
+class Point {
+    @JSON4all.addProperty(1) public x: number
+    @JSON4all.addProperty(2) public y: number
+    @JSON4all.addProperty(3) public z: number
+    @JSON4all.addProperty public color: string | undefined
+    public internal: number | undefined
+    constructor(x, y, z){
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+}
+
+var p = new Point(1.1, 2.3, 3.14);
+p.internal = 7;
+
+var q = JSON4all.parse(JSON4all.stingify(p));
+
+console.log(q.internal); // undefined
+console.log(q instanceof Point); // true
+console.log(q.z); // 3.14
+```
+## JSON4all.RefStore
+
+<!--lang:es-->
+
+Registra un objeto como repositorio de instancias referenciables en el backend y copias en el frontend 
+(las modificación copias en el frontend no impactan en el backend). 
+
+Cuando el objeto es serializado en el backend se le agrega una referencia. 
+Al llegar al frontend el objeto es revivido y conservada la referencia. 
+
+Cuando el objeto se envía del backend al frontend, al serializarlo solo se envía la referencia 
+(porque al ser una copia no es necesario pasar los datos porque ya están en el backend)
+
+<!--lang:en--]
+
+Registers an object as a repository of referenciable instances in the back-end that can send copies to the front-end. 
+
+When a object is serialized in the back-end a reference was added to the sended data. In the front-end the object is revived and the reference conserved. 
+
+When the object is serialized to be send back to de back-end, 
+it serialize only the reference excluding the properity values
+(because they don't need id to identified the object in the back-end). 
+
+
+[!--lang:*-->
+
+```ts
+
+// in the back-end
+import * as JSON4all from 'json4all';
+import { Point } from './common/my-classes';
+
+JSON4all.RefStoreSpace(global.mySpace)
+
+var points = JSON4all.RefStore<string, Point>(['points']);
+
+var center = new Point(100,200,-50);
+points['x3298484'] = center;
+
+console.log(points[JSON4all.RefKey]) // 'x3298484'
+var str = JSON4all.stringify(center);
+
+var center2 = JSON4all.parse(str);
+
+console.log( center === center2 ); // true the same instance!!!!
+
+res.send(JSON4all.stringify(center));
+
+// IN THE FRONT-END:
+import * as JSON4all from 'json4all';
+import { Point } from './common/my-classes';
+
+var pointStr = await simpleFetch('https://..../center')
+var point = JSON4all.parse()
+
+console.log(point.x, point.y, point.z); // 100,200,-50
+point.x = 999;
+
+simpleFetch('https://..../set-center?point='+JSON4all.stringify(point));
+// only the ref is sended
+
+// IN THE BACK-END:
+
+app.get('/set-center',(req)=>{
+    // with the ref the object is retrived from the collection
+    var point = JSON4all.parse(req.query('point'));
+    console.log(point.x, point.y, point.z); // 100,200,-50
+    console.log(points['x3298484'] === point) // the same instance
+})
+
+
 ```
 
 <!--lang:es-->
