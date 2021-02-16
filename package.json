@@ -1,14 +1,18 @@
 {
   "name": "json4all",
   "description": "JSON for all purposes and all environments",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "repository": "codenautas/json4all",
   "license": "MIT",
   "main": "json4all.js",
+  "types": "json4all.d.ts",
   "files": [],
   "dependencies": {},
   "devDependencies": {
+    "@types/node": "^14.14.28",
+    "@types/mocha": "^8.2.0",
+    "typescript": "^4.1.5",
     "body-parser": "~1.18.1",
     "cookie-parser": "~1.4.3",
     "esprima": "~4.0.0",
@@ -40,7 +44,7 @@
     "node": ">= 0.12"
   },
   "scripts": {
-    "test": "mocha --reporter spec --bail --check-leaks test/",
+    "test": "tsc -p test/ts && mocha --reporter spec --bail --recursive --check-leaks test/**/test*.js",
     "test-nc": "mocha --reporter spec --bail --check-leaks --no-colors test/",
     "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
     "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",

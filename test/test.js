@@ -7,6 +7,10 @@ var JSON4all = require('../json4all.js');
 var ExampleClass = ExampleClass = require('./example-class.js');
 
 var bestGlobals = require('best-globals');
+const { strict:assert  } = require('assert');
+const json4all = require('../json4all.js');
+const { json } = require('body-parser');
+const { Console } = require('console');
 var date = bestGlobals.date;
 var datetime = bestGlobals.datetime;
 
@@ -195,7 +199,7 @@ describe("JSON4all error conditions",function(){
         var expected={"3":new Date(-20736000000)};
         var obtained = JSON4all.parse(encoded);
         compareObjects(obtained,expected);
-        discrepances.showAndThrow(obtained,expected);
+        discrepances.showAndThrow(obtained,expected); 
         compareObjects(obtained,expected);
     });
 });
@@ -235,3 +239,40 @@ describe("addType", function(){
         });
     });
 });
+
+class Two{
+    constructor(name){
+        this.name = name;
+    }
+}
+
+JSON4all.addType(Two,{
+    construct: JSON4all.nonymizate,
+    deconstruct: JSON4all.anonymizate
+});
+
+describe("Referenceable objects", ()=>{
+    // @ts-expect-error global
+    if(!global.mySpace){ global.mySpace = {}; JSON4all.RefStoreSpace(global.mySpace); }
+    var mySpace = global.mySpace;
+    var collection = JSON4all.RefStore(['collection']);
+    it("adds element to collection", ()=>{
+        collection.one = {name:'the name'};
+        assert.equal(mySpace.collection, collection);
+        assert.deepEqual(collection.one[JSON4all.RefKey], [['collection'],'one']);
+    });
+    it("serializes the reference",()=>{
+        var two = new Two('Name');
+        collection.two = two;
+        var str = JSON4all.stringify(two)
+        var plain = JSON.parse(str);
+        assert.deepEqual(plain, {$special:'Two', $value:{name:'Name'}, $ref:[['collection'],'two']});
+        assert.deepEqual(str, `{"$special":"Two","$value":{"name":"Name"},"$ref":[["collection"],"two"]}`);
+    })
+    it("deserializes a reference", ()=>{
+        var two = JSON4all.parse(`{"$ref":[["collection"],"two"],"$special":"Two","$value":{"name":"Other","more":1}}`);
+        console.log(two);
+        assert(two instanceof Two);
+        assert.equal(two.name, "Name");
+    })
+})

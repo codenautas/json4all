@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "outDir":"../trans",
+        "strict": true,
+        "target": "ES2019",
+        "module": "none",
+        "noUnusedLocals": true,
+        "lib": ["ES2019"],
+        "typeRoots" : ["../../node_modules/@types"],
+        "experimentalDecorators": true
+    },
+    "include": [
+        "*.ts"
+    ]
+}

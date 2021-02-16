@@ -138,7 +138,15 @@ json4all.replacer = function replacer(key, value){
     }else{
         var typeDef=types[typeName];
         if(typeDef){
-            return {$special: typeDef.specialTag(realValue), $value: typeDef.deconstruct(realValue)};
+            var replaced = {$special: typeDef.specialTag(realValue), $value: typeDef.deconstruct(realValue)};
+            var ref = realValue[RefKey];
+            if(ref!==undefined){
+                replaced.$ref = ref;
+                if(json4all.$RefStoreSpace == null){
+                    delete replaced.$value;
+                }
+            }
+            return replaced;
             // return {$special:'specialTag' in typeDef?typeDef.specialTag(realValue):typeName, $value: typeDef.deconstruct(realValue)};
         }else{
             console.log("JSON4all.stringify unregistered object type", typeName);
@@ -149,8 +157,20 @@ json4all.replacer = function replacer(key, value){
 
 json4all.reviver = function reviver(key, plainValue){
     var log=false;
+    var result;
     if(key==='$escape'){
         return plainValue;
+    }else if(plainValue!==null && plainValue.$ref && json4all.$RefStoreSpace){
+        var collection = json4all.$RefStoreSpace[plainValue.$ref[0][0]]
+        if(!collection){
+            console.log('********* json4all ref collection invalid', plainValue, json4all.$RefStoreSpace)
+            throw new Error("json4all ref collection invalid");
+        }
+        var object = collection[plainValue.$ref[1]];
+        if(!object){
+            throw new Error("json4all ref key invalid");
+        }
+        return object;
     }else if(plainValue!==null && plainValue.$special){
         if(plainValue.$special==='undefined'){ 
             if(key===''){
@@ -162,7 +182,7 @@ json4all.reviver = function reviver(key, plainValue){
         }else{
             var typeDef=types[plainValue.$special];
             if(typeDef){
-                return new typeDef.construct(plainValue.$value, typeDef.constructor);
+                result = new typeDef.construct(plainValue.$value, typeDef.constructor);
             }else{
                 console.log("JSON4all.parse invalid $special", plainValue.$special);
                 throw new Error("JSON4all.parse invalid $special");
@@ -170,15 +190,21 @@ json4all.reviver = function reviver(key, plainValue){
         }
     }else if(plainValue!==null && plainValue.$escape){
         return plainValue.$escape;
-    }
-    if(plainValue instanceof Object){
-        for(var k in plainValue){
-            if(plainValue[k]===InternalValueForUndefined){
-                plainValue[k]=undefined;
+    }else{
+        result = plainValue;
+        if(plainValue instanceof Object){
+            for(var k in plainValue){
+                if(plainValue[k]===InternalValueForUndefined){
+                    plainValue[k]=undefined;
+                }
             }
         }
     }
-    return plainValue;
+    if(plainValue !=null && plainValue.$ref){
+        result[RefKey] = plainValue.$ref
+        console.log('**********', plainValue, result)
+    }
+    return result;
 };
 
 json4all.stringify = function stringify(value){
@@ -258,6 +284,101 @@ json4all.addType(RegExp, {
 });
 
 json4all._types = types;
+
+const RefKey = Symbol("RefKey for RefMap")
+
+json4all.RefKey = RefKey;
+// export class RefMap<K extends keyof object, V extends any> extends Map<K, V>{
+
+json4all.RefStoreSpace = (myCollection)=>{
+    json4all.$RefStoreSpace = myCollection;
+}
+
+
+/** 
+ * @type {<K extends string|number|symbol, V extends {}> (path:(string|number|symbol)[]) => Partial<{[key in V]:v}} 
+ * */
+json4all.RefStore = (path)=>{
+    var myCollection = json4all.$RefStoreSpace;
+    /** @type {Partial<{[key in K]:V}>}  */
+    var o = {}
+    var p= new Proxy(o, {
+        /*
+        get:function(target, prop, _receiver) {
+            return target[prop];
+        },
+        */
+        /** @param {Partial<{[key in K]:V}>} target */
+        /** @param {K} prop */
+        /** @param {V} value */
+        set:function(target, prop, value){
+            if(
+                // @ts-expect-error RefKey no está en el tipo original
+                value[RefKey] == null 
+            ){
+                // @ts-expect-error RefKey no está en el tipo original
+                value[RefKey] = [path, prop];
+            }else if(
+                // @ts-expect-error RefKey no está en el tipo original
+                value[RefKey][0] != key
+            ){
+                console.log("This value was stored in another place", path, prop)
+                throw new Error("This value was stored in another place")
+            }
+            return Reflect.set(target, prop, value);
+        }
+    });
+    myCollection[path[0]] = p;
+    return p;
+}
+
+json4all.$props2serialize = Symbol("props2serialize")
+
+json4all.addProperty = function(constructorPosition){
+    var innerFunction = (classPrototype, prop, index)=>{
+        console.log('////////////////////////// addProperty',classPrototype, prop, index)
+        if(!(json4all.$props2serialize in classPrototype)){
+            classPrototype[json4all.$props2serialize] = []
+        }
+        var info={name:prop}
+        if(typeof constructorPosition === "number") info.construct = constructorPosition
+        classPrototype[json4all.$props2serialize].push(info)
+    }
+    if(typeof constructorPosition === "number"){
+        return innerFunction
+    }else{
+        return innerFunction(...arguments)
+    }
+}
+
+json4all.replacerFromProps2serialize = function(){
+    var propList = this[json4all.$props2serialize];
+    var o = {};
+    for(var prop of propList){
+        o[prop.name] = this[prop.name]
+    }
+    return o;
+}
+
+json4all.addClass = (constructor)=>{
+    console.log(constructor);
+    if(!(json4all.$props2serialize in constructor.prototype)){
+        throw new Error("must add parameters or properties")
+    }
+    var propList = constructor.prototype[json4all.$props2serialize];
+    constructor.prototype.JSON4replacer = json4all.replacerFromProps2serialize;
+    constructor.JSON4reviver = function(value, constructor){
+        var constructParams = propList.filter(p=>p.construct!=null).map(p=>value[p.name])
+        var o = new constructor(...constructParams);
+        for(var p of propList){
+            if(!p.construct){
+                o[p.name] = value[p.name]
+            }
+        }
+        return o;
+    }
+    json4all.addType(constructor)
+}
 
 return json4all;
 
