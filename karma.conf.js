@@ -14,7 +14,7 @@ module.exports = function(config, preConfig) {
     // list of files / patterns to load in the browser
     files: [
       'node_modules/require-bro/lib/require-bro.js',
-      'test/example-class.js',
+      'test/js/example-class.js',
       'node_modules/express-useragent/lib/express-useragent.js',
       'node_modules/best-globals/best-globals.js',
       'node_modules/discrepances/lib/discrepances.js',
@@ -23,7 +23,7 @@ module.exports = function(config, preConfig) {
       'node_modules/self-explain/dist/escodegen.browser.js',
       'node_modules/self-explain/lib/self-explain.js',
       'json4all.js',
-      'test/*.js'
+      'test/js/*.js'
     ],
 
     filesForIE8: [
@@ -37,7 +37,7 @@ module.exports = function(config, preConfig) {
       'node_modules/self-explain/lib/self-explain.js',
       'node_modules/discrepances/lib/discrepances.js',
       'json4all.js',
-      'test/*.js'
+      'test/js/*.js'
     ],
 
     // list of files to exclude
@@ -86,12 +86,12 @@ module.exports = function(config, preConfig) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Firefox', 'PhantomJS'].concat((process.env.TRAVIS?[]:['Chrome','Safari','IE'])),
+    browsers: ['Firefox'].concat((process.env.TRAVIS?[]:['Chrome','IE'])),
     /* NO CAMBIAR MÁS BROWSERS DIRECTO DESDE ACÁ, INVOCAR DESDE LA LÍNEA DE PARÁMETROS ASÍ:
     npm run infinito -- --browsers Chrome,PhantomJS
     npm run infinito -- --browsers Chrome
     npm run infinito -- --browsers Firefox,Safari,Chrome
-    npm run infinito -- --browsers Firefox,Safari,Chrome,IE,PhantomJS
+    npm run infinito -- --browsers Firefox,Safari,Chrome,IE
     */
     
     // Continuous Integration mode

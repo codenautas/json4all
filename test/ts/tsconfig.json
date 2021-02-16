@@ -3,7 +3,7 @@
         "outDir":"../js",
         "strict": true,
         "target": "ES2019",
-        "module": "none",
+        "module": "umd",
         "noUnusedLocals": true,
         "lib": ["ES2019"],
         "typeRoots" : ["../../node_modules/@types"],
