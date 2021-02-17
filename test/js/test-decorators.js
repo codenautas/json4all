@@ -171,6 +171,26 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 }
             });
         });
+        it("serialize a anonymous object like a registered one", () => {
+            var threeLike = {
+                id: "ID3",
+                age: 4,
+                other: "do not pass this"
+            };
+            JSON4all.pretendClass(threeLike, Three);
+            var str = JSON4all.stringify(threeLike);
+            var plain = JSON.parse(str);
+            assert_1.strict.deepEqual(plain, {
+                "$special": "Three",
+                "$value": {
+                    "id": "ID3",
+                    "age": 4,
+                    "name": {
+                        "$special": "undefined"
+                    }
+                }
+            });
+        });
     });
     describe("decorators and references", () => {
         var threes = JSON4all.RefStore(['Threes']);

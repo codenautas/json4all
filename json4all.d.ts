@@ -13,12 +13,11 @@ declare namespace json4all{
     function RefStoreSpace(globalSpace:object):void
     function RefStore<K extends string|number|symbol, V>(path:(string|number|symbol)[]):{[key in K]: V}
     const RefKey:symbol
+    function pretendClass(plainValue:object, Constructor:Function):void
     // DECORATORS SYSTEM:
     const $props2serialize:symbol
     function addClass(constructor:Function):void
     function addProperty(prototype:Object, prop:string):void
     function addProperty(constructorPosition:number):(prototype:Object, prop:string)=>void
-    // INTERNAL:
-    function replacerFromProps2serialize():object;
 }
 export = json4all

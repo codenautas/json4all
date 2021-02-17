@@ -24,6 +24,8 @@
 var json4all = {};
 /*jshint +W004 */
 
+json4all.PretendedClass = Symbol("Pretended Class");
+
 function functionName(fun) {
     /* istanbul ignore next */
     if('name' in fun){
@@ -34,7 +36,7 @@ function functionName(fun) {
 }
 
 function constructorName(obj) {
-    return functionName(obj.constructor);
+    return functionName(obj[json4all.PretendedClass] || obj.constructor);
 }
 
 var root;
@@ -348,13 +350,12 @@ json4all.addProperty = function(constructorPosition){
     }
 }
 
-json4all.replacerFromProps2serialize = function(){
-    var propList = this[json4all.$props2serialize];
-    var o = {};
-    for(var prop of propList){
-        o[prop.name] = this[prop.name]
-    }
-    return o;
+json4all.pretendClass = function(object, Constructor){
+    object[json4all.PretendedClass] = Constructor
+    // @ts-expect-error
+    object.JSON4replacer = Constructor.prototype.JSON4replacer;
+    // @ts-expect-error
+    // object[JSON4all.$props2serialize] = Constructor.prototype[JSON4all.$props2serialize];
 }
 
 json4all.addClass = (constructor)=>{
@@ -362,7 +363,13 @@ json4all.addClass = (constructor)=>{
         throw new Error("must add parameters or properties")
     }
     var propList = constructor.prototype[json4all.$props2serialize];
-    constructor.prototype.JSON4replacer = json4all.replacerFromProps2serialize;
+    constructor.prototype.JSON4replacer = function(){
+        var o = {};
+        for(var prop of propList){
+            o[prop.name] = this[prop.name]
+        }
+        return o;
+    };
     constructor.JSON4reviver = function(value, constructor){
         var constructParams = propList.filter(p=>p.construct!=null).map(p=>value[p.name])
         var o = new constructor(...constructParams);

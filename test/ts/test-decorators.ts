@@ -144,6 +144,26 @@ describe("decorators", ()=>{
             }
         })
     })
+    it("serialize a anonymous object like a registered one", ()=>{
+        var threeLike:any = {
+            id: "ID3",
+            age: 4,
+            other: "do not pass this"
+        };
+        JSON4all.pretendClass(threeLike, Three);
+        var str = JSON4all.stringify(threeLike);
+        var plain = JSON.parse(str);
+        assert.deepEqual(plain,{
+            "$special": "Three",
+            "$value": {
+                "id": "ID3",
+                "age": 4,
+                "name": {
+                    "$special": "undefined"
+                }
+            }
+        })
+    })
 })
 
 describe("decorators and references", ()=>{
