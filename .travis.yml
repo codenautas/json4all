@@ -1,14 +1,12 @@
 language: node_js
 node_js:
-  - "12"
   - "14"
-  - "15"
+  - "16"
 matrix:
   fast_finish: true
 script: 
   - npm test
   - npm run-script test-nyc
-  - npm run-script report
 after_script: 
   - ls -cal
   - ls -cal ./coverage
