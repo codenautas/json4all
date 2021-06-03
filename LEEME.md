@@ -228,6 +228,33 @@ app.get('/set-center',(req)=>{
     console.log(points['x3298484'] === point) // the same instance
 })
 
+```
+## JSON4all.pretendClass(object, classConstructor)
+
+<!--lang:es-->
+
+Interviene un objeto plano para que la llamada a `JSON.stringify(object)` devuelva el mismo valor
+que la llamada a una instancia de clase que tenga sus mismos valores (`JSON.stringify(object) === JSON.object(instance)`).
+
+<!--lang:en--]
+
+Sets internal properties of a plain object to make the call of `JSON.stringify(object)`
+to return the same value that the call aplied to a instance object of that class with the same values
+(`JSON.stringify(object) === JSON.object(instance)`). 
+
+[!--lang:*-->
+
+```ts
+var point = new Point({x:7, y:8});
+var object = {x:7, y:8};
+
+JSON4all.pretendClass(object, Point);
+
+console.log(JSON4all.stringify(object) == JSON4all.stringify(point)); // true
+
+var restoredPoint = JSON4all.parse(JSON4all.stringify(object));
+
+console.log(restoredPoint instanceof Point); // true
 
 ```
 
