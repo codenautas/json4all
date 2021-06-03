@@ -7,7 +7,7 @@ matrix:
   fast_finish: true
 script: 
   - npm test
-  - npm run-script test-cov
+  - npm run-script test-nyc
   - npm run-script report
 after_script: 
   - ls -cal
