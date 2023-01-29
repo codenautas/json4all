@@ -52,7 +52,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         });
         it("deserializes a reference", () => {
             var two = JSON4all.parse(`{"$ref":[["TheCollection"],"two"],"$special":"Two","$value":{"name":"Other","more":1}}`);
-            assert_1.strict(two instanceof Two);
+            (0, assert_1.strict)(two instanceof Two);
             assert_1.strict.equal(two.name, "Name");
         });
         it("inexistent collection", () => {
