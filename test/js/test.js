@@ -114,6 +114,7 @@ var fixtures=[
     {name:'array'     ,value: [1,"2", false]               },
     {name:'fecha'     ,value: new Date(-20736000000)       , expectedV2:`*1969-05-06T00:00:00.000Z`, expectEncode: '{"$special":"Date","$value":-20736000000}', check:function(o){ return o instanceof Date; }},
     {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}  , expectedV2:`*a:1,f:*2016-03-02`+hourStrFromToday, check:function(o){ return o.f instanceof Date; }},
+    {name:'{{fecha}}' ,value: {a:{f:new Date(2016,2,2)}}   , check:function(o){ return o.a.f instanceof Date; }},
     {bg:true, name:'fech',value: date.iso("1999-12-31")    , expectedV2:`*1999-12-31`, expectEncode: '{"$special":"date","$value":"1999-12-31"}', check:function(o){ return o instanceof Date && o.isRealDate; }, skipDeepEqual:true},
     {bg:true, name:'{fech}',value: {a:1, f:date.ymd(2016,2,2)}, expectedV2:`*a:1,f:*2016-02-02`, check:function(o){ return o.f.isRealDate; }, skipDeepEqual:true},
     {bg:true, name:'datetime',value: datetime.iso("1999-12-31"), expectedV2:`*1999-12-31 00:00`, expectEncode: '{"$special":"Datetime","$value":"1999-12-31"}', check:function(o){ return o instanceof bestGlobals.Datetime; }},
@@ -125,9 +126,15 @@ var fixtures=[
     {name:'{undef}'   ,value: {a:undefined}                 , expectEncode: '{"a":{"$special":"undefined"}}'},
     {name:'[undef]'   ,value: [0,undefined,"0",null,false] , expectEncode: '[0,{"$special":"undefined"},"0",null,false]', 
                    expected2: [0,          "0",null,false] },
+    {name:'{}'        ,value: {}                           , expectedV2:'{}', expectEncode:'{}'},
+    {name:'[]'        ,value: []                           , expectedV2:'[]', expectEncode:'[]'},
     {name:'regex'     ,value: /hola/gi                     , expectedV2:`*/hola/gi`},
     {name:'regex_no_attr',value: /[a-z]/                   , expectedV2:`*/[a-z]/`},
-    {name:'{regex}'   ,value: {r:/hola/}                   , expectedV2:`*r:*/hola/` , check:function(o){ return o.r instanceof RegExp; }},
+    {name:'{regex}'   ,value: {r:/hola/}                   , expectedV2:`*r:*/hola/`    , check:function(o){ return o.r instanceof RegExp; }},
+    {name:'{{regex}}' ,value: {a:{r:/hola/}}               , expectedV2:`{"a":{"r":{"$special":"RegExp","$value":{"source":"hola","flags":""}}}}` , check:function(o){ return o.a.r instanceof RegExp; }},
+    {name:'*star'     ,value: '*star'                      , expectedV2:'**star', expectEncode:'"*star"'},
+    {name:'{*star}'   ,value: {r:'*star'}                  , expectedV2:'*r:**star', expectEncode:'{"r":"*star"}'},
+    {name:'{{*alfa}}' ,value: {a:{r:'*alfa'},r:'*beta'}    , expectedV2:'*a:{"r":"*alfa"},r:**beta', expectEncode:'{"a":{"r":"*alfa"},"r":"*beta"}'},
     {name:'fun'       ,value: function(x){ return x+1; }    , expectEncode: '{"$special":"undefined"}', expected: undefined},
     {name:'{fun}'     ,value: {f:function(x){ return x+1; }}, expectEncode: '{"f":{"$special":"unset"}}', expected:{} },
     {name:'complex'   ,
@@ -174,19 +181,18 @@ describe("JSON4all",function(){
             }
             var expected = 'expected' in fixture?fixture.expected:fixture.value;
             var decoded=JSON4all.parse(encoded);
-            console.log('==========', encoded, decoded, expected)
             compareObjects(decoded, expected, fixture, fixture.skipDeepEqual);
             decoded=JSON.parse(encoded);
             decoded=JSON4all.convertPlain2$special(decoded);
             compareObjects(decoded, expected, fixture, fixture, fixture.skipDeepEqual);
-            if('check' in fixture){
-                expect(fixture.check(decoded)).to.ok();
-            }
             if ('expectedV2' in fixture) {
                 var encoded = JSON4all.stringifyOuter(fixture.value);
                 compareObjects(encoded, fixture.expectedV2, fixture, fixture.skipDeepEqual);
                 var decoded = JSON4all.parse(fixture.expectedV2);
                 compareObjects(decoded, expected, fixture, fixture.skipDeepEqual);
+            }
+            if('check' in fixture){
+                expect(fixture.check(decoded)).to.ok();
             }
         });
     });

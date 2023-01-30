@@ -228,7 +228,7 @@ json4all.stringifyOuter = function stringifyOuter(value, onlyValues){
     var typeName = constructorName(value);
     if(typeof value === "string"){ 
         if(value[0] === '*'){
-            return json4all.quoteString('**' + value);
+            return '*' + value ;
         }else{
             return json4all.quoteString(value);
         }
@@ -252,7 +252,7 @@ json4all.stringifyOuter = function stringifyOuter(value, onlyValues){
                 }
                 result.push(pair);
             }
-            if (!cantSimplify){
+            if (!cantSimplify && result.length){
                 return '*' + result.join(',');
             }
         }
@@ -298,7 +298,6 @@ json4all.parse = function parse(text){
             if(!typeDef.deserialize){
                 throw new Error("no tiene deserialize "+typeName)
             }
-            console.log('***************?', typeName, payload)
             var {ok, value} = typeDef.deserialize(payload);
             if(ok){
                 valueOk = value;
@@ -359,11 +358,8 @@ json4all.addType = function addType(typeConstructor, functions, skipIfExists){
             return prefix + json4all.stringifyOuter(plainObject, onlyValues)
         },
         deserialize: functions.deserialize || function deserialize(plainValue){
-            console.log('+**************', plainValue)
             if (plainValue.startsWith(prefix + '*')) {
-                console.log('***************', plainValue)
                 var plainObject = json4all.parse(plainValue.substring(prefix.length),constructor);
-                console.log('***************', plainObject)
                 return {
                     ok:true, 
                     value:'JSON4replacer' in typeConstructor.prototype ? typeConstructor.JSON4reviver(plainObject) : functions.construct(plainObject, typeConstructor)
