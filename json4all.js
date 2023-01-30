@@ -207,9 +207,61 @@ json4all.reviver = function reviver(key, plainValue){
     return result;
 };
 
-json4all.stringify = function stringify(value){
+var directRegExp = /^((null|undefined|true|false)$|[\]\[{}".0-9])/;
+var directStringRegExp  = /^[a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-][0-9a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-]{0,32}$/;
+var AttributeNameRegExp = /^[a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-][0-9a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-]*($|,)/;
+
+json4all.stringifyAnyPlace = function stringifyAnyPlace(value){
     return JSON.stringify(value, json4all.replacer);
 };
+
+json4all.quoteString = function quoteString(text){
+    if(directStringRegExp.test(text)){
+        return text;
+    }
+    return JSON.stringify(text);
+}
+
+json4all.stringifyOuter = function stringifyOuter(value, onlyValues){
+    if(value === null) return "null";
+    if(value === undefined) return "*!undefined";
+    var typeName = constructorName(value);
+    if(typeof value === "string"){ 
+        if(value[0] === '*'){
+            return json4all.quoteString('**' + value);
+        }else{
+            return json4all.quoteString(value);
+        }
+    } else if (value && typeof value === "object" && !value[RefKey]) {
+        if(!json4all.directTypes[typeName]){
+            var typeDef=types[typeName];
+            if(typeDef && (!onlyValues || typeDef.valueLike)){
+                return '*' + typeDef.serialize(value, onlyValues)
+            }else{
+                console.log("JSON4all.stringify unregistered object type", typeName);
+                throw new Error("JSON4all.stringify unregistered object type");
+            }
+        } else if(!onlyValues) {
+            var result = []
+            var cantSimplify = false;
+            for (var attr in value) {
+                var pair = json4all.stringifyOuter(attr, true) + ':' + json4all.stringifyOuter(value[attr], true);
+                cantSimplify = pair.includes(',') || attr.includes(':');
+                if (cantSimplify) {
+                    break;
+                }
+                result.push(pair);
+            }
+            if (!cantSimplify){
+                return '*' + result.join(',');
+            }
+        }
+    }
+    return JSON.stringify(value, json4all.replacer);
+};
+
+json4all.stringify = json4all.stringifyAnyPlace;
+// json4all.stringify = json4all.stringifyOuter;
 
 json4all.convertPlain2$special = function convertPlain2$special(o, internally){
     if(o!=null && o instanceof Object){
@@ -230,18 +282,60 @@ json4all.convertPlain2$special = function convertPlain2$special(o, internally){
     }
 };
 
-/* istanbul ignore next */ // For IE compatibility
-if(thisPlatformHasReplacerBug){
-    console.log('thisPlatformHasReplacerBug', window.navigator.userAgent)
-    json4all.parse = function parse(text){
+json4all.isTesting = true;
+
+json4all.parse = function parse(text){
+    if (text[0] === '*') {
+        var payload = text.substring(1);
+        if (payload[0] === '*') return payload;
+        if (payload[0] === '!'){
+            if(payload === '!undefined') return undefined;
+        }
+        var valueOk = null;
+        for (var typeName in types) {
+            var typeDef = types[typeName];
+            var okDetected = null;
+            if(!typeDef.deserialize){
+                throw new Error("no tiene deserialize "+typeName)
+            }
+            console.log('***************?', typeName, payload)
+            var {ok, value} = typeDef.deserialize(payload);
+            if(ok){
+                valueOk = value;
+                if(json4all.isTesting){
+                    if (okDetected) {
+                        console.log("More than one way",typeName,okDetected,text,value,valueOk);
+                        throw Error("")
+                    }
+                    okDetected = typeName;
+                }
+                break;
+            }
+        }
+        if(okDetected) return valueOk;
+        if (AttributeNameRegExp.test(text[1]) || text[1] == '"') {
+            var result = {}
+            var parts = text.substring(1).split(',');
+            for (var part of parts) {
+                var pos = part.indexOf(':');
+                if (pos < 0) {
+                    throw new Error('JSON4all.parse error. Lack of colon ":" in object');
+                }
+                result[json4all.parse(part.substr(0, pos))] = json4all.parse(part.substr(pos+1))
+            }
+            return result;
+        }
+    }else if (typeof text === "string" && !directRegExp.test(text)) {
+        return text;
+    }
+    /* istanbul ignore next */ // For IE compatibility
+    if(thisPlatformHasReplacerBug){
         var parsed=JSON.parse(text);
         return json4all.convertPlain2$special(parsed);
-    };
-}else{
-    json4all.parse = function parse(text){
+    } else {
         return JSON.parse(text, json4all.reviver);
-    };
-}
+    }
+};
 
 json4all.addType = function addType(typeConstructor, functions, skipIfExists){
     functions = functions || {};
@@ -249,6 +343,7 @@ json4all.addType = function addType(typeConstructor, functions, skipIfExists){
     if(skipIfExists && types[constructorName]){
         return;
     }
+    var prefix = '@' + constructorName
     types[constructorName]={
         construct: functions.construct || function construct(plainValue, constructor){
             return typeConstructor.JSON4reviver(plainValue, constructor);
@@ -258,21 +353,52 @@ json4all.addType = function addType(typeConstructor, functions, skipIfExists){
         },
         specialTag: functions.specialTag || function specialTag(value){
             return constructorName;
-        }
+        },
+        serialize: functions.serialize ?? function serialize(o, onlyValues){
+            var plainObject = 'JSON4replacer' in typeConstructor.prototype ? o.JSON4replacer() : functions.deconstruct(o);
+            return prefix + json4all.stringifyOuter(plainObject, onlyValues)
+        },
+        deserialize: functions.deserialize || function deserialize(plainValue){
+            console.log('+**************', plainValue)
+            if (plainValue.startsWith(prefix + '*')) {
+                console.log('***************', plainValue)
+                var plainObject = json4all.parse(plainValue.substring(prefix.length),constructor);
+                console.log('***************', plainObject)
+                return {
+                    ok:true, 
+                    value:'JSON4replacer' in typeConstructor.prototype ? typeConstructor.JSON4reviver(plainObject) : functions.construct(plainObject, typeConstructor)
+                }
+            }
+            return {ok:false}
+        },
+        valueLike: functions.valueLike || typeConstructor.JSON4valueLike
     };
     if(typeof typeConstructor === 'function'){
         types[constructorName].constructor = typeConstructor;
     }
 };
 
-json4all.addType(Date,{
+var NativeDateRegExp = /^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d*)?Z$/;
+
+json4all.DateFunctions = {
     construct: function construct(plainValue){ 
         return new Date(plainValue); 
     }, 
     deconstruct: function deconstruct(o){
         return o.getTime();
     },
-}, true);
+    serialize: function serialize(o){
+        return o.toISOString();
+    },
+    deserialize: function deserialize(plainValue){
+        var ok = NativeDateRegExp.test(plainValue);
+        var value = ok && new Date(plainValue) || null;
+        return {ok, value};
+    },
+    valueLike: true
+}
+
+json4all.addType(Date, json4all.DateFunctions, true);
 
 json4all.addType(RegExp, {
     construct: function construct(plainValue){ 
@@ -280,7 +406,20 @@ json4all.addType(RegExp, {
     }, 
     deconstruct: function deconstruct(o){
         return {source: o.source, flags: o.toString().substring(o.toString().lastIndexOf('/')+1)};
-    }
+    },
+    serialize: function serialize(o){
+        return '/' + o.source + '/' + o.flags;
+    },
+    deserialize: function deserialize(plainValue){
+        var ok = false
+        var value = null;
+        plainValue.replace(/^\/(.+)\/(\w*)$/, function(_, pattern, flags){
+            value = new RegExp(pattern, flags)
+            ok = true;
+        });
+        return {ok, value};
+    },
+    valueLike: true
 });
 
 json4all._types = types;

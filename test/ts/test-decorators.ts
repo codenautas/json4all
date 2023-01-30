@@ -6,10 +6,37 @@ class Two{
     }
 }
 
+//////////////////////////////////
+// var version = 'stringifyAnyPlace';
+var version = 'stringifyOuter';
+// @ts-expect-error stringify names not yet
+
+JSON4all.stringify = JSON4all[version];
+console.log('---------------- VERSION',version)
+
+
 JSON4all.addType(Two,{
     construct: JSON4all.nonymizate,
     deconstruct: JSON4all.anonymizate
 });
+
+
+@JSON4all.addClass
+class ThreeBase{
+    @JSON4all.addProperty(1)
+    public id:string
+    @JSON4all.addProperty
+    public name?:string
+    @JSON4all.addProperty
+    public age:number = 0
+    constructor(id:string){ this.id = id; }
+}
+
+@JSON4all.addClass
+class Three extends ThreeBase{
+    public other:string = "Other"
+    public another:string|null = null;
+}
 
 describe("---- TYPESCRIPT Referenceable objects", ()=>{
     // @ts-expect-error global
@@ -30,9 +57,9 @@ describe("---- TYPESCRIPT Referenceable objects", ()=>{
         var two = new Two('Name');
         collection.two = two;
         var str = JSON4all.stringify(two)
+        assert.deepEqual(str, `{"$special":"Two","$value":{"name":"Name"},"$ref":[["TheCollection"],"two"]}`);
         var plain = JSON.parse(str);
         assert.deepEqual(plain, {$special:'Two', $value:{name:'Name'}, $ref:[['TheCollection'],'two']});
-        assert.deepEqual(str, `{"$special":"Two","$value":{"name":"Name"},"$ref":[["TheCollection"],"two"]}`);
     })
     it("deserializes a reference", ()=>{
         var two = JSON4all.parse(`{"$ref":[["TheCollection"],"two"],"$special":"Two","$value":{"name":"Other","more":1}}`);
@@ -66,23 +93,6 @@ describe("---- TYPESCRIPT Referenceable objects", ()=>{
     })
 })
 
-@JSON4all.addClass
-class ThreeBase{
-    @JSON4all.addProperty(1)
-    public id:string
-    @JSON4all.addProperty
-    public name?:string
-    @JSON4all.addProperty
-    public age:number = 0
-    constructor(id:string){ this.id = id; }
-}
-
-@JSON4all.addClass
-class Three extends ThreeBase{
-    public other:string = "Other"
-    public another:string|null = null;
-}
-
 describe("decorators", ()=>{
     it("has prop list", ()=>{
         assert.deepEqual(
@@ -98,51 +108,42 @@ describe("decorators", ()=>{
     it("serialize only registereds in base", ()=>{
         var threeBase = new ThreeBase('id3');
         var str = JSON4all.stringify(threeBase);
-        var plain = JSON.parse(str);
-        assert.deepEqual(plain,{
-            "$special": "ThreeBase",
-            "$value": {
-                "id": "id3",
-                "age": 0,
-                "name": {
-                    "$special": "undefined"
+        if (version == 'stringifyAnyPlace') {
+            var plain = JSON.parse(str);
+            assert.deepEqual(plain,{
+                "$special": "ThreeBase",
+                "$value": {
+                    "id": "id3",
+                    "age": 0,
+                    "name": {
+                        "$special": "undefined"
+                    }
                 }
-            }
-        })
+            })
+        } else {
+            assert.deepEqual(str, `*@ThreeBase*id:id3,name:*!undefined,age:0`)
+        }
     })
     it("serialize only registereds", ()=>{
         var three = new Three('ID3');
         three.age = 4;
         three.another = "present!";
         var str = JSON4all.stringify(three);
-        var plain = JSON.parse(str);
-        assert.deepEqual(plain,{
-            "$special": "Three",
-            "$value": {
-                "id": "ID3",
-                "age": 4,
-                "name": {
-                    "$special": "undefined"
+        if (version == 'stringifyAnyPlace') {
+            var plain = JSON.parse(str);
+            assert.deepEqual(plain,{
+                "$special": "Three",
+                "$value": {
+                    "id": "ID3",
+                    "age": 4,
+                    "name": {
+                        "$special": "undefined"
+                    }
                 }
-            }
-        })
-    })
-    it("serialize only registereds", ()=>{
-        var three = new Three('ID3');
-        three.age = 4;
-        three.another = "present!";
-        var str = JSON4all.stringify(three);
-        var plain = JSON.parse(str);
-        assert.deepEqual(plain,{
-            "$special": "Three",
-            "$value": {
-                "id": "ID3",
-                "age": 4,
-                "name": {
-                    "$special": "undefined"
-                }
-            }
-        })
+            })
+        } else {
+            assert.deepEqual(str, `*@Three*id:ID3,name:*!undefined,age:4`)
+        }
     })
     it("serialize a anonymous object like a registered one", ()=>{
         var threeLike:any = {
@@ -152,17 +153,21 @@ describe("decorators", ()=>{
         };
         JSON4all.pretendClass(threeLike, Three);
         var str = JSON4all.stringify(threeLike);
-        var plain = JSON.parse(str);
-        assert.deepEqual(plain,{
-            "$special": "Three",
-            "$value": {
-                "id": "ID3",
-                "age": 4,
-                "name": {
-                    "$special": "undefined"
+        if (version == 'stringifyAnyPlace') {
+            var plain = JSON.parse(str);
+            assert.deepEqual(plain,{
+                "$special": "Three",
+                "$value": {
+                    "id": "ID3",
+                    "age": 4,
+                    "name": {
+                        "$special": "undefined"
+                    }
                 }
-            }
-        })
+            })
+        } else {
+            assert.deepEqual(str, `*@Three*id:ID3,name:*!undefined,age:4`)
+        }
     })
 })
 
