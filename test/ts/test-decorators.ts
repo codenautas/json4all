@@ -8,7 +8,7 @@ class Two{
 
 //////////////////////////////////
 // var version = 'stringifyAnyPlace';
-var version = 'stringifyOuter';
+var version = 'toURL';
 // @ts-expect-error stringify names not yet
 
 JSON4all.stringify = JSON4all[version];

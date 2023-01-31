@@ -207,7 +207,7 @@ json4all.reviver = function reviver(key, plainValue){
     return result;
 };
 
-var directRegExp = /^((null|undefined|true|false)$|[\]\[{}".0-9])/;
+var directRegExp = /^((null|undefined|true|false)$|[-\]\[{}".0-9])/;
 var directStringRegExp  = /^[a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-][0-9a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-]{0,32}$/;
 var AttributeNameRegExp = /^[a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-][0-9a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-]*($|,)/;
 
@@ -215,53 +215,94 @@ json4all.stringifyAnyPlace = function stringifyAnyPlace(value){
     return JSON.stringify(value, json4all.replacer);
 };
 
-json4all.quoteString = function quoteString(text){
-    if(directStringRegExp.test(text)){
-        return text;
+var SEPARATOR = {',':true}
+
+function maxConsumer(){
+    var fun = function([value, length]){
+        if (length > fun.result) fun.result = length;
+        return value
     }
-    return JSON.stringify(text);
+    fun.result = null;
+    return fun;
 }
 
-json4all.stringifyOuter = function stringifyOuter(value, onlyValues){
-    if(value === null) return "null";
-    if(value === undefined) return "*!undefined";
+json4all.maxConsumer = maxConsumer;
+
+json4all.mesureString = function mesureString(value, mesuringAlso){
+    var currentSeparator = null;
+    var currentLength = 0;
+    var maxLenght = 0;
+    for (var char of value) {
+        if (SEPARATOR[char] || char === mesuringAlso) {
+            if (currentSeparator != char) {
+                currentLength = 0
+                currentSeparator = char
+            }
+            currentLength++
+            if (currentLength > maxLenght) maxLenght = currentLength
+        } else {
+            currentSeparator = null;
+        }
+    }
+    return [value, maxLenght]
+}
+
+json4all.quoteString = function quoteString(text, mesuringAlso){
+    var value = directStringRegExp.test(text) ? text : JSON.stringify(text);
+    return json4all.mesureString(value,mesuringAlso);
+}
+
+var STAR = '*';
+
+json4all.toURL = function toURL(value){
+    return json4all.toUrlConstruct(value)[0];
+}
+
+var repeat = (str, count) => Array.prototype.concat(new Array(count +1)).join(str);
+
+json4all.toUrlConstruct = function toUrlConstruct(value){
+    if(value === null) return ["null",0];
+    if(value === undefined) return ["*!undefined",0];
     var typeName = constructorName(value);
     if(typeof value === "string"){ 
-        if(value[0] === '*'){
-            return '*' + value ;
+        if(value[0] === STAR){
+            return json4all.mesureString(STAR + value);
         }else{
             return json4all.quoteString(value);
         }
     } else if (value && typeof value === "object" && !value[RefKey]) {
         if(!json4all.directTypes[typeName]){
             var typeDef=types[typeName];
-            if(typeDef && (!onlyValues || typeDef.valueLike)){
-                return '*' + typeDef.serialize(value, onlyValues)
+            if(typeDef /* && (!onlyValues || typeDef.valueLike)*/){
+                var serializedValue = typeDef.serialize(value)
+                if(typeof serializedValue === "string") return json4all.mesureString(STAR + serializedValue);
+                var [serializedValue, ...serializedRest] = serializedValue
+                return [STAR + serializedValue, ...serializedRest]
             }else{
                 console.log("JSON4all.stringify unregistered object type", typeName);
                 throw new Error("JSON4all.stringify unregistered object type");
             }
-        } else if(!onlyValues) {
+        } else {
             var result = []
             var cantSimplify = false;
+            var max = maxConsumer();
             for (var attr in value) {
-                var pair = json4all.stringifyOuter(attr, true) + ':' + json4all.stringifyOuter(value[attr], true);
-                cantSimplify = pair.includes(',') || attr.includes(':');
-                if (cantSimplify) {
-                    break;
-                }
+                var pair = [max(json4all.toUrlConstruct(attr, ':')), max(json4all.toUrlConstruct(value[attr]))]
                 result.push(pair);
             }
+            var lengthSep = max.result + 1;
+            var PairSep = repeat(':',lengthSep);
+            var ListSep = repeat(',',lengthSep);
             if (!cantSimplify && result.length){
-                return '*' + result.join(',');
+                return [STAR + ListSep + result.map(pair=>pair.join(PairSep)).join(ListSep), lengthSep];
             }
         }
     }
-    return JSON.stringify(value, json4all.replacer);
+    return json4all.mesureString(JSON.stringify(value, json4all.replacer));
 };
 
 json4all.stringify = json4all.stringifyAnyPlace;
-// json4all.stringify = json4all.stringifyOuter;
+// json4all.stringify = json4all.toURL;
 
 json4all.convertPlain2$special = function convertPlain2$special(o, internally){
     if(o!=null && o instanceof Object){
@@ -284,45 +325,71 @@ json4all.convertPlain2$special = function convertPlain2$special(o, internally){
 
 json4all.isTesting = true;
 
+json4all.getPlainObject = function getPlainObject(payload){
+    var i = 0;
+    var PairSep = '';
+    var ListSep = '';
+    while (i < payload.length && payload[i] === ',') { i++; ListSep += ','; PairSep += ':' }
+    var result = {}
+    var parts = payload.substring(i).split(ListSep);
+    for (var part of parts) {
+        var pos = part.indexOf(PairSep);
+        if (pos < 0) {
+            throw new Error('JSON4all.parse error. Lack of colon "' + PairSep + '" in object');
+        }
+        result[json4all.parse(part.substr(0, pos))] = json4all.parse(part.substr(pos + i))
+    }
+    return result;
+}
+
 json4all.parse = function parse(text){
-    if (text[0] === '*') {
+    if (text[0] === STAR) {
         var payload = text.substring(1);
-        if (payload[0] === '*') return payload;
-        if (payload[0] === '!'){
-            if(payload === '!undefined') return undefined;
+        if (payload[0] === STAR) return payload;
+        if (payload[0] === '!') {
+            if (payload === '!undefined') return undefined;
         }
-        var valueOk = null;
-        for (var typeName in types) {
-            var typeDef = types[typeName];
-            var okDetected = null;
-            if(!typeDef.deserialize){
-                throw new Error("no tiene deserialize "+typeName)
-            }
-            var {ok, value} = typeDef.deserialize(payload);
-            if(ok){
-                valueOk = value;
-                if(json4all.isTesting){
-                    if (okDetected) {
-                        console.log("More than one way",typeName,okDetected,text,value,valueOk);
-                        throw Error("")
+        if (payload[0] === ',') {
+            return json4all.getPlainObject(payload);
+        }
+        if(true){
+            var i = 0;
+            var PairSep = '';
+            var ListSep = '';
+            while (i < payload.length && payload[i] === ',') { i++; ListSep += ','; PairSep += '#' }
+            var valueOk = null;
+            for (var typeName in types) {
+                var typeDef = types[typeName];
+                var okDetected = null;
+                if(!typeDef.deserialize){
+                    throw new Error("no tiene deserialize "+typeName)
+                }
+                var {ok, value} = typeDef.deserialize(payload);
+                if(ok){
+                    valueOk = value;
+                    if(json4all.isTesting){
+                        if (okDetected) {
+                            console.log("More than one way",typeName,okDetected,text,value,valueOk);
+                            throw Error("")
+                        }
+                        okDetected = typeName;
                     }
-                    okDetected = typeName;
+                    break;
                 }
-                break;
             }
-        }
-        if(okDetected) return valueOk;
-        if (AttributeNameRegExp.test(text[1]) || text[1] == '"') {
-            var result = {}
-            var parts = text.substring(1).split(',');
-            for (var part of parts) {
-                var pos = part.indexOf(':');
-                if (pos < 0) {
-                    throw new Error('JSON4all.parse error. Lack of colon ":" in object');
+            if (okDetected) return valueOk;
+            if (AttributeNameRegExp.test(text[1]) || text[1] == '"') {
+                var result = {}
+                var parts = text.substring(1).split(ListSep);
+                for (var part of parts) {
+                    var pos = part.indexOf(PairSep);
+                    if (pos < 0) {
+                        throw new Error('JSON4all.parse error. Lack of colon "' + ListSep + '" in object');
+                    }
+                    result[json4all.parse(part.substr(0, pos))] = json4all.parse(part.substr(pos+1))
                 }
-                result[json4all.parse(part.substr(0, pos))] = json4all.parse(part.substr(pos+1))
+                return result;
             }
-            return result;
         }
     }else if (typeof text === "string" && !directRegExp.test(text)) {
         return text;
@@ -353,13 +420,14 @@ json4all.addType = function addType(typeConstructor, functions, skipIfExists){
         specialTag: functions.specialTag || function specialTag(value){
             return constructorName;
         },
-        serialize: functions.serialize ?? function serialize(o, onlyValues){
+        serialize: functions.serialize ?? function serialize(o){
             var plainObject = 'JSON4replacer' in typeConstructor.prototype ? o.JSON4replacer() : functions.deconstruct(o);
-            return prefix + json4all.stringifyOuter(plainObject, onlyValues)
+            var [value, max] =  json4all.toUrlConstruct(plainObject)
+            return [prefix + value.substring(1), max];
         },
         deserialize: functions.deserialize || function deserialize(plainValue){
-            if (plainValue.startsWith(prefix + '*')) {
-                var plainObject = json4all.parse(plainValue.substring(prefix.length),constructor);
+            if (plainValue.startsWith(prefix + ',')) {
+                var plainObject = json4all.parse(STAR + plainValue.substring(prefix.length),constructor);
                 return {
                     ok:true, 
                     value:'JSON4replacer' in typeConstructor.prototype ? typeConstructor.JSON4reviver(plainObject) : functions.construct(plainObject, typeConstructor)

@@ -15,12 +15,11 @@ var date = bestGlobals.date;
 var datetime = bestGlobals.datetime;
 
 // var version = 'stringifyAnyPlace';
-var version = 'stringifyOuter';
+var version = 'toURL';
 // @ts-expect-error stringify names not yet
 
 JSON4all.stringify = JSON4all[version];
 console.log('---------------- VERSION',version)
-
 
 var deepEqual;
 
@@ -69,6 +68,35 @@ function compareObjects(obtained, expected, fixture, skipDeepEqual){
     }
 }
 
+describe("maxConsumer", function(){
+    var maxConsumer = json4all.maxConsumer;
+    it("results 0 if no consuming", function(){
+        var max = maxConsumer();
+        assert.equal(max.result, null);
+    })
+    it("returns the first argument", function(){
+        var argument = {the:'x'};
+        var max = maxConsumer();
+        var obtained = max([argument]);
+        assert.equal(obtained, argument);
+    })
+    it("returns all the arguments, get max", function(){
+        var argument1 = {the:'1'};
+        var argument2 = {the:'2'};
+        var argument3 = {the:'3'};
+        var max = maxConsumer();
+        var obtained = [
+            max([argument1,3]), 
+            max([argument2,9]),
+            max([argument3,2]),
+        ];
+        assert.equal(obtained[0], argument1);
+        assert.equal(obtained[1], argument2);
+        assert.equal(obtained[2], argument3);
+        assert.equal(max.result, 9);
+    })
+})
+
 var seeAll = false;
 
 var parte={
@@ -108,12 +136,12 @@ var hourStrFromToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()
 var fixtures=[
     {name:'strDate'   ,value: "2012-01-02"                 , expectedV2:`"2012-01-02"`},
     {name:'strStr'    ,value: "hola"                       , expectedV2:`hola`},
-    {name:'parte'     ,value: parte                        , expectedV2:`*parteA:A`},
+    {name:'parte'     ,value: parte                        , expectedV2:`*,parteA:A`},
     {name:'partes'    ,value: [parte, parte]               },
-    {name:'rombo'     ,value: {a:parte, b:parte}           , expectedV2:`*a:{"parteA":"A"},b:{"parteA":"A"}`},
+    {name:'rombo'     ,value: {a:parte, b:parte}           , expectedV2:`*,,a::*,parteA:A,,b::*,parteA:A`, alterV2:`*,a:{"parteA":"A"},b:{"parteA":"A"}`},
     {name:'array'     ,value: [1,"2", false]               },
     {name:'fecha'     ,value: new Date(-20736000000)       , expectedV2:`*1969-05-06T00:00:00.000Z`, expectEncode: '{"$special":"Date","$value":-20736000000}', check:function(o){ return o instanceof Date; }},
-    {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}  , expectedV2:`*a:1,f:*2016-03-02`+hourStrFromToday, check:function(o){ return o.f instanceof Date; }},
+    {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}  , expectedV2:`*,a:1,f:*2016-03-02`+hourStrFromToday, check:function(o){ return o.f instanceof Date; }},
     {name:'{{fecha}}' ,value: {a:{f:new Date(2016,2,2)}}   , check:function(o){ return o.a.f instanceof Date; }},
     {bg:true, name:'fech',value: date.iso("1999-12-31")    , expectedV2:`*1999-12-31`, expectEncode: '{"$special":"date","$value":"1999-12-31"}', check:function(o){ return o instanceof Date && o.isRealDate; }, skipDeepEqual:true},
     {bg:true, name:'{fech}',value: {a:1, f:date.ymd(2016,2,2)}, expectedV2:`*a:1,f:*2016-02-02`, check:function(o){ return o.f.isRealDate; }, skipDeepEqual:true},
@@ -127,14 +155,16 @@ var fixtures=[
     {name:'[undef]'   ,value: [0,undefined,"0",null,false] , expectEncode: '[0,{"$special":"undefined"},"0",null,false]', 
                    expected2: [0,          "0",null,false] },
     {name:'{}'        ,value: {}                           , expectedV2:'{}', expectEncode:'{}'},
+    {name:'{{{}}}'    ,value: {a:{d:{},e:{}},b:2,c:{}}     , expectedV2:'*,,a::*,d:{},e:{},,b::2,,c::{}'},
     {name:'[]'        ,value: []                           , expectedV2:'[]', expectEncode:'[]'},
     {name:'regex'     ,value: /hola/gi                     , expectedV2:`*/hola/gi`},
     {name:'regex_no_attr',value: /[a-z]/                   , expectedV2:`*/[a-z]/`},
-    {name:'{regex}'   ,value: {r:/hola/}                   , expectedV2:`*r:*/hola/`    , check:function(o){ return o.r instanceof RegExp; }},
-    {name:'{{regex}}' ,value: {a:{r:/hola/}}               , expectedV2:`{"a":{"r":{"$special":"RegExp","$value":{"source":"hola","flags":""}}}}` , check:function(o){ return o.a.r instanceof RegExp; }},
+    {name:'{regex}'   ,value: {r:/hola/}                   , expectedV2:`*,r:*/hola/`    , check:function(o){ return o.r instanceof RegExp; }},
+    {name:'{{regex}}' ,value: {a:{r:/hola/}}               , expectedV2:`*,,a::*,r:*/hola/` ,alterV2:`{"a":{"r":{"$special":"RegExp","$value":{"source":"hola","flags":""}}}}` , check:function(o){ return o.a.r instanceof RegExp; }},
     {name:'*star'     ,value: '*star'                      , expectedV2:'**star', expectEncode:'"*star"'},
-    {name:'{*star}'   ,value: {r:'*star'}                  , expectedV2:'*r:**star', expectEncode:'{"r":"*star"}'},
-    {name:'{{*alfa}}' ,value: {a:{r:'*alfa'},r:'*beta'}    , expectedV2:'*a:{"r":"*alfa"},r:**beta', expectEncode:'{"a":{"r":"*alfa"},"r":"*beta"}'},
+    {name:'{*star}'   ,value: {r:'*star'}                  , expectedV2:'*,r:**star', expectEncode:'{"r":"*star"}'},
+    {name:'{{*alfa}}' ,value: {a:{r:'*alfa'},r:'*beta'}    , expectedV2:'*,,a::*,r:**alfa,,r::**beta', alterV2:'*a:{"r":"*alfa"},r:**beta', expectEncode:'{"a":{"r":"*alfa"},"r":"*beta"}'},
+    {name:'{{",,,"}}' ,value: {a:{r:',,,'}}                , expectedV2:'*,,,,,a:::::*,,,,r::::",,,"' },
     {name:'fun'       ,value: function(x){ return x+1; }    , expectEncode: '{"$special":"undefined"}', expected: undefined},
     {name:'{fun}'     ,value: {f:function(x){ return x+1; }}, expectEncode: '{"f":{"$special":"unset"}}', expected:{} },
     {name:'complex'   ,
@@ -153,13 +183,13 @@ var fixtures=[
     {name:'h3-JSON4all' ,value: {$escape:{$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'},e:{$escape:true}}}}},
     {name:'Point'     ,value: new Point(1,2,3.3), 
         check:function(o){ return o instanceof Point; } , 
-        expectedV2: `*@Point*x:1,y:2,z:3.3`,
+        expectedV2: `*@Point,x:1,y:2,z:3.3`,
         expectEncode:'{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}'
     },
     {name:'hack-EJSON',value: {"$special":"Point","$value":{"x":1,"y":2,"z":3.3}} },
     {name:'hack2EJSON',value: {$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}} },
     {name:'hack3EJSON',value: {$escape:{$escape:{$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}}}} },
-    {name:'anonymous' ,value: data, expectedV2:`*one:1,alpha:"α"`, expected:{one:1, alpha:'α'} } 
+    {name:'anonymous' ,value: data, expectedV2:`*,one:1,alpha:"α"`, expected:{one:1, alpha:'α'} } 
 ];
 
 describe("JSON4all",function(){
@@ -186,7 +216,7 @@ describe("JSON4all",function(){
             decoded=JSON4all.convertPlain2$special(decoded);
             compareObjects(decoded, expected, fixture, fixture, fixture.skipDeepEqual);
             if ('expectedV2' in fixture) {
-                var encoded = JSON4all.stringifyOuter(fixture.value);
+                var encoded = JSON4all.toURL(fixture.value);
                 compareObjects(encoded, fixture.expectedV2, fixture, fixture.skipDeepEqual);
                 var decoded = JSON4all.parse(fixture.expectedV2);
                 compareObjects(decoded, expected, fixture, fixture.skipDeepEqual);
