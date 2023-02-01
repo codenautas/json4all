@@ -6,6 +6,7 @@ declare namespace json4all{
     }
     function parse<T>(jsonText:string):T
     function stringify(object:any):string
+    function toUrl(object:any):string
     function addType(className:string, functions:AddTypeFunctions, skipIfExists?:boolean):void
     function addType(constructor:Function, functions?:AddTypeFunctions, skipIfExists?:boolean):void
     function anonymizate<T>(classedObject:T):object

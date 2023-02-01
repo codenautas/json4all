@@ -14,13 +14,6 @@ const { Console } = require('console');
 var date = bestGlobals.date;
 var datetime = bestGlobals.datetime;
 
-// var version = 'stringifyAnyPlace';
-var version = 'toURL';
-// @ts-expect-error stringify names not yet
-
-JSON4all.stringify = JSON4all[version];
-console.log('---------------- VERSION',version)
-
 var deepEqual;
 
 var runningInBrowser = typeof window !== 'undefined';
@@ -142,17 +135,17 @@ var fixtures=[
     {name:'array'     ,value: [1,"2", false]               },
     {name:'fecha'     ,value: new Date(-20736000000)       , expectedV2:`*1969-05-06T00:00:00.000Z`, expectEncode: '{"$special":"Date","$value":-20736000000}', check:function(o){ return o instanceof Date; }},
     {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}  , expectedV2:`*,a:1,f:*2016-03-02`+hourStrFromToday, check:function(o){ return o.f instanceof Date; }},
-    {name:'{{fecha}}' ,value: {a:{f:new Date(2016,2,2)}}   , check:function(o){ return o.a.f instanceof Date; }},
+    {name:'{{fecha}}' ,value: {a:{f:new Date(2016,2,2)}}   , expectedV2:false, check:function(o){ return o.a.f instanceof Date; }},
     {bg:true, name:'fech',value: date.iso("1999-12-31")    , expectedV2:`*1999-12-31`, expectEncode: '{"$special":"date","$value":"1999-12-31"}', check:function(o){ return o instanceof Date && o.isRealDate; }, skipDeepEqual:true},
-    {bg:true, name:'{fech}',value: {a:1, f:date.ymd(2016,2,2)}, expectedV2:`*a:1,f:*2016-02-02`, check:function(o){ return o.f.isRealDate; }, skipDeepEqual:true},
+    {bg:true, name:'{fech}',value: {a:1, f:date.ymd(2016,2,2)}, expectedV2:`*,a:1,f:*2016-02-02`, check:function(o){ return o.f.isRealDate; }, skipDeepEqual:true},
     {bg:true, name:'datetime',value: datetime.iso("1999-12-31"), expectedV2:`*1999-12-31 00:00`, expectEncode: '{"$special":"Datetime","$value":"1999-12-31"}', check:function(o){ return o instanceof bestGlobals.Datetime; }},
-    {bg:true, name:'{datetime}',value: {a:1, f:datetime.ymdHms(2016,2,2,12,1,2)}, expectedV2:`*a:1,f:*2016-02-02 12:01:02`, check:function(o){ return o.f instanceof bestGlobals.Datetime; }},
+    {bg:true, name:'{datetime}',value: {a:1, f:datetime.ymdHms(2016,2,2,12,1,2)}, expectedV2:`*,a:1,f:*2016-02-02 12:01:02`, check:function(o){ return o.f instanceof bestGlobals.Datetime; }},
     {name:'bigNumber' ,value: 12345678901234567890         },
     {name:'bool'      ,value: true                         },
     {name:'null'      ,value: null                         },
-    {name:'undef'     ,value: undefined                     , expectEncode: '{"$special":"undefined"}'},
-    {name:'{undef}'   ,value: {a:undefined}                 , expectEncode: '{"a":{"$special":"undefined"}}'},
-    {name:'[undef]'   ,value: [0,undefined,"0",null,false] , expectEncode: '[0,{"$special":"undefined"},"0",null,false]', 
+    {name:'undef'     ,value: undefined                     , expectedV2:`*!undefined`, expectEncode: '{"$special":"undefined"}'},
+    {name:'{undef}'   ,value: {a:undefined}                 , expectedV2:`*,a:*!undefined`, expectEncode: '{"a":{"$special":"undefined"}}'},
+    {name:'[undef]'   ,value: [0,undefined,"0",null,false]  , expectEncode: '[0,{"$special":"undefined"},"0",null,false]', 
                    expected2: [0,          "0",null,false] },
     {name:'{}'        ,value: {}                           , expectedV2:'{}', expectEncode:'{}'},
     {name:'{{{}}}'    ,value: {a:{d:{},e:{}},b:2,c:{}}     , expectedV2:'*,,a::*,d:{},e:{},,b::2,,c::{}'},
@@ -165,30 +158,33 @@ var fixtures=[
     {name:'{*star}'   ,value: {r:'*star'}                  , expectedV2:'*,r:**star', expectEncode:'{"r":"*star"}'},
     {name:'{{*alfa}}' ,value: {a:{r:'*alfa'},r:'*beta'}    , expectedV2:'*,,a::*,r:**alfa,,r::**beta', alterV2:'*a:{"r":"*alfa"},r:**beta', expectEncode:'{"a":{"r":"*alfa"},"r":"*beta"}'},
     {name:'{{",,,"}}' ,value: {a:{r:',,,'}}                , expectedV2:'*,,,,,a:::::*,,,,r::::",,,"' },
-    {name:'fun'       ,value: function(x){ return x+1; }    , expectEncode: '{"$special":"undefined"}', expected: undefined},
-    {name:'{fun}'     ,value: {f:function(x){ return x+1; }}, expectEncode: '{"f":{"$special":"unset"}}', expected:{} },
+    {name:'fun'       ,value: function(x){ return x+1; }   , expectedV2:`*!unset` , expectEncode: '{"$special":"undefined"}', expected: undefined},
+    {name:'{fun}'     ,value: {f:function(x){ return x+1; }}, expectedV2:`*,f:*!unset`, expectEncode: '{"f":{"$special":"unset"}}', expected:{} },
     {name:'complex'   ,
         value:    {list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:today},_:'333'}],f:function(){return 3;}},
         expected: {list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:today},_:'333'}]                        },
         expected2:{list1:[{one:{two:['the list',32,'33',null,          '}'],'3':33,'length':4,d:today},_:'333'}]                        },
+        expectedV2:false
     },
     {name:'h1-JSON4all' ,value: {d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}, 
         expectEncode: JSON.stringify({d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}),
+        expectedV2:`*,,d::*,\"$special\":Date,\"$value\":1456887600000,,u::*,\"$special\":undefined`,
         /* expected2:runningInBrowser */
     },
     {name:'h2-JSON4all' ,value: {$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}},
         expectEncode: JSON.stringify({$escape:{$escape:{d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}}}),
+        expectedV2:false
         /* expected2: */
     },
-    {name:'h3-JSON4all' ,value: {$escape:{$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'},e:{$escape:true}}}}},
+    {name:'h3-JSON4all' ,value: {$escape:{$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'},e:{$escape:true}}}},expectedV2:false},
     {name:'Point'     ,value: new Point(1,2,3.3), 
         check:function(o){ return o instanceof Point; } , 
         expectedV2: `*@Point,x:1,y:2,z:3.3`,
         expectEncode:'{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}'
     },
-    {name:'hack-EJSON',value: {"$special":"Point","$value":{"x":1,"y":2,"z":3.3}} },
-    {name:'hack2EJSON',value: {$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}} },
-    {name:'hack3EJSON',value: {$escape:{$escape:{$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}}}} },
+    {name:'hack-EJSON',expectedV2:false,value: {"$special":"Point","$value":{"x":1,"y":2,"z":3.3}} },
+    {name:'hack2EJSON',expectedV2:false,value: {$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}} },
+    {name:'hack3EJSON',expectedV2:false,value: {$escape:{$escape:{$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}}}} },
     {name:'anonymous' ,value: data, expectedV2:`*,one:1,alpha:"α"`, expected:{one:1, alpha:'α'} } 
 ];
 
@@ -205,7 +201,7 @@ describe("JSON4all",function(){
         var withError=false;
         it("fixture "+fixture.name+": "+JSON.stringify(fixture),function(){
             //if(runningInBrowser) { console.log("FIXTURE", fixture.name); }
-            var encoded=JSON4all.stringifyAnyPlace(fixture.value);
+            var encoded=JSON4all.stringify(fixture.value);
             if('expectEncode' in fixture){
                 compareObjects(encoded,fixture.expectEncode);
             }
@@ -215,12 +211,14 @@ describe("JSON4all",function(){
             decoded=JSON.parse(encoded);
             decoded=JSON4all.convertPlain2$special(decoded);
             compareObjects(decoded, expected, fixture, fixture, fixture.skipDeepEqual);
-            if ('expectedV2' in fixture) {
-                var encoded = JSON4all.toURL(fixture.value);
-                compareObjects(encoded, fixture.expectedV2, fixture, fixture.skipDeepEqual);
-                var decoded = JSON4all.parse(fixture.expectedV2);
-                compareObjects(decoded, expected, fixture, fixture.skipDeepEqual);
+            var encodedV2 = JSON4all.toUrl(fixture.value);
+            if (fixture.expectedV2) {
+                compareObjects(encodedV2, fixture.expectedV2, fixture, fixture.skipDeepEqual);
+            } else if (fixture.expectedV2 !== false) {
+                compareObjects(encodedV2, encoded, fixture, fixture.skipDeepEqual);
             }
+            var decoded = JSON4all.parse(encodedV2);
+            compareObjects(decoded, expected, fixture, fixture.skipDeepEqual);
             if('check' in fixture){
                 expect(fixture.check(decoded)).to.ok();
             }
@@ -242,6 +240,21 @@ describe("JSON4all error conditions",function(){
         expect(function(){
             JSON4all.stringify(new OtherClass());
         }).to.throwError(/JSON4all.*registered.*type/);
+    });
+    it("rejects unregistered classes parsing URL", function(){
+        expect(function(){
+            JSON4all.toUrl(new OtherClass());
+        }).to.throwError(/JSON4all.*registered.*type/);
+    });
+    it("rejects errored URLS", function(){
+        expect(function(){
+            JSON4all.parse(`*,a,b:7`);
+        }).to.throwError(/JSON4all.*Lack of colon.*/);
+    });
+    it("rejects errored bad !", function(){
+        expect(function(){
+            JSON4all.parse(`*!cuack!`);
+        }).to.throwError(/JSON4all.*unrecognize.*token/);
     });
     it("bugy condition in some IE", function(){
         var encoded='{"3":33}';
@@ -273,12 +286,14 @@ JSON4all.addType(ExampleClass,{
 describe("addType", function(){
     describe("ExampleClass", function(){
         [
-            {text: "1 day", o:{days: 1}, expectedJson: version == 'stringifyAnyPlace' ? (
+            {text: "1 day", o:{days: 1}, expectedJson: 
                 ExampleClass["4client"] ? '{"$special":"ExampleClass","$value":{"days":1}}'
-                : '{"$special":"ExampleClass","$value":{"days":1,"toISO":{"$special":"unset"}}}'
-            ) : `*@ExampleClass*days:1`},
-            {text: "1 year 2 month 3 days 4:05:06", o:{years:1, months:2, days:3, hours:4, minutes:5, seconds:6}},
-            {text: "10:30", o:{hours: 10, minutes:30}},
+                : '{"$special":"ExampleClass","$value":{"days":1,"toISO":{"$special":"unset"}}}',
+                expectedV2: `*@ExampleClass,days:1`
+            },
+            {text: "1 year 2 month 3 days 4:05:06", o:{years:1, months:2, days:3, hours:4, minutes:5, seconds:6}, 
+                expectedV2: `*@ExampleClass,years:1,months:2,days:3,hours:4,minutes:5,seconds:6`},
+            {text: "10:30", o:{hours: 10, minutes:30}, expectedV2: `*@ExampleClass,hours:10,minutes:30`},
         ].forEach(function(fixture){
             it("handles interval "+fixture.text, function(){
                 if(ExampleClass["4client"]){
@@ -296,6 +311,13 @@ describe("addType", function(){
                 var resurrected = JSON4all.parse(intervalJson);
                 expect(resurrected).to.eql(interval);
                 expect(resurrected instanceof interval.constructor);
+                if(fixture.expectedV2){
+                    var intervalJson = JSON4all.toUrl(interval);
+                    expect(intervalJson).to.eql(fixture.expectedV2);
+                    var resurrected = JSON4all.parse(intervalJson);
+                    expect(resurrected).to.eql(interval);
+                    expect(resurrected instanceof interval.constructor);
+                }
             });
         });
     });

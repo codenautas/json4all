@@ -207,7 +207,7 @@ json4all.reviver = function reviver(key, plainValue){
     return result;
 };
 
-var directRegExp = /^((null|undefined|true|false)$|[-\]\[{}".0-9])/;
+var directRegExp = /^((null|true|false)$|[-\]\[{}".0-9])/;
 var directStringRegExp  = /^[a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-][0-9a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-]{0,32}$/;
 var AttributeNameRegExp = /^[a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-][0-9a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-]*($|,)/;
 
@@ -254,7 +254,7 @@ json4all.quoteString = function quoteString(text, mesuringAlso){
 
 var STAR = '*';
 
-json4all.toURL = function toURL(value){
+json4all.toUrl = function toUrl(value){
     return json4all.toUrlConstruct(value)[0];
 }
 
@@ -263,6 +263,7 @@ var repeat = (str, count) => Array.prototype.concat(new Array(count +1)).join(st
 json4all.toUrlConstruct = function toUrlConstruct(value){
     if(value === null) return ["null",0];
     if(value === undefined) return ["*!undefined",0];
+    if(value instanceof Function) return ["*!unset",0];
     var typeName = constructorName(value);
     if(typeof value === "string"){ 
         if(value[0] === STAR){
@@ -270,7 +271,7 @@ json4all.toUrlConstruct = function toUrlConstruct(value){
         }else{
             return json4all.quoteString(value);
         }
-    } else if (value && typeof value === "object" && !value[RefKey]) {
+    } else if (value && typeof value === "object" && !value[RefKey] && !(value instanceof Array) ) {
         if(!json4all.directTypes[typeName]){
             var typeDef=types[typeName];
             if(typeDef /* && (!onlyValues || typeDef.valueLike)*/){
@@ -302,7 +303,6 @@ json4all.toUrlConstruct = function toUrlConstruct(value){
 };
 
 json4all.stringify = json4all.stringifyAnyPlace;
-// json4all.stringify = json4all.toURL;
 
 json4all.convertPlain2$special = function convertPlain2$special(o, internally){
     if(o!=null && o instanceof Object){
@@ -337,60 +337,51 @@ json4all.getPlainObject = function getPlainObject(payload){
         if (pos < 0) {
             throw new Error('JSON4all.parse error. Lack of colon "' + PairSep + '" in object');
         }
-        result[json4all.parse(part.substr(0, pos))] = json4all.parse(part.substr(pos + i))
+        var value = json4all.parse(part.substr(pos + i), true);
+        if (value !== InternalValueForUnset) {
+            result[json4all.parse(part.substr(0, pos))] = value
+        }
     }
     return result;
 }
 
-json4all.parse = function parse(text){
+json4all.parse = function parse(text, inner){
     if (text[0] === STAR) {
         var payload = text.substring(1);
         if (payload[0] === STAR) return payload;
         if (payload[0] === '!') {
             if (payload === '!undefined') return undefined;
+            if (payload === '!unset') {
+                console.log('********************* UNSET',text, inner)
+                return inner ? InternalValueForUnset : undefined;
+            }
+            throw new Error('JSON4all.parse unrecognize *! token')
         }
         if (payload[0] === ',') {
             return json4all.getPlainObject(payload);
         }
-        if(true){
-            var i = 0;
-            var PairSep = '';
-            var ListSep = '';
-            while (i < payload.length && payload[i] === ',') { i++; ListSep += ','; PairSep += '#' }
-            var valueOk = null;
-            for (var typeName in types) {
-                var typeDef = types[typeName];
-                var okDetected = null;
-                if(!typeDef.deserialize){
-                    throw new Error("no tiene deserialize "+typeName)
-                }
-                var {ok, value} = typeDef.deserialize(payload);
-                if(ok){
-                    valueOk = value;
-                    if(json4all.isTesting){
-                        if (okDetected) {
-                            console.log("More than one way",typeName,okDetected,text,value,valueOk);
-                            throw Error("")
-                        }
-                        okDetected = typeName;
-                    }
-                    break;
-                }
+        for (var typeName in types) {
+            var typeDef = types[typeName];
+            var okDetected = null;
+            /* istanbul ignore next */
+            if(!typeDef.deserialize){
+                throw new Error("JSON4all.parse type without deserialize: "+typeName)
             }
-            if (okDetected) return valueOk;
-            if (AttributeNameRegExp.test(text[1]) || text[1] == '"') {
-                var result = {}
-                var parts = text.substring(1).split(ListSep);
-                for (var part of parts) {
-                    var pos = part.indexOf(PairSep);
-                    if (pos < 0) {
-                        throw new Error('JSON4all.parse error. Lack of colon "' + ListSep + '" in object');
+            var valueOk = null;
+            var {ok, value} = typeDef.deserialize(payload);
+            if(ok){
+                valueOk = value;
+                if(json4all.isTesting){
+                    if (okDetected) {
+                        console.log("More than one way",typeName,okDetected,text,value,valueOk);
+                        throw Error("")
                     }
-                    result[json4all.parse(part.substr(0, pos))] = json4all.parse(part.substr(pos+1))
+                    okDetected = typeName;
                 }
-                return result;
+                break;
             }
         }
+        if (okDetected) return valueOk;
     }else if (typeof text === "string" && !directRegExp.test(text)) {
         return text;
     }
@@ -430,7 +421,7 @@ json4all.addType = function addType(typeConstructor, functions, skipIfExists){
                 var plainObject = json4all.parse(STAR + plainValue.substring(prefix.length),constructor);
                 return {
                     ok:true, 
-                    value:'JSON4replacer' in typeConstructor.prototype ? typeConstructor.JSON4reviver(plainObject) : functions.construct(plainObject, typeConstructor)
+                    value:'JSON4replacer' in typeConstructor.prototype ? typeConstructor.JSON4reviver(plainObject, typeConstructor) : functions.construct(plainObject, typeConstructor)
                 }
             }
             return {ok:false}

@@ -6,15 +6,6 @@ class Two{
     }
 }
 
-//////////////////////////////////
-// var version = 'stringifyAnyPlace';
-var version = 'toURL';
-// @ts-expect-error stringify names not yet
-
-JSON4all.stringify = JSON4all[version];
-console.log('---------------- VERSION',version)
-
-
 JSON4all.addType(Two,{
     construct: JSON4all.nonymizate,
     deconstruct: JSON4all.anonymizate
@@ -108,42 +99,46 @@ describe("decorators", ()=>{
     it("serialize only registereds in base", ()=>{
         var threeBase = new ThreeBase('id3');
         var str = JSON4all.stringify(threeBase);
-        if (version == 'stringifyAnyPlace') {
-            var plain = JSON.parse(str);
-            assert.deepEqual(plain,{
-                "$special": "ThreeBase",
-                "$value": {
-                    "id": "id3",
-                    "age": 0,
-                    "name": {
-                        "$special": "undefined"
-                    }
+        var plain = JSON.parse(str);
+        assert.deepEqual(plain,{
+            "$special": "ThreeBase",
+            "$value": {
+                "id": "id3",
+                "age": 0,
+                "name": {
+                    "$special": "undefined"
                 }
-            })
-        } else {
-            assert.deepEqual(str, `*@ThreeBase*id:id3,name:*!undefined,age:0`)
-        }
+            }
+        })
+        str = JSON4all.toUrl(threeBase);
+        assert.deepEqual(str, `*@ThreeBase,id:id3,name:*!undefined,age:0`);
+        var o = JSON4all.parse(str);
+        assert.ok(o instanceof ThreeBase);
+        var str2 = JSON4all.toUrl(o);
+        assert.deepEqual(str, str2);
     })
     it("serialize only registereds", ()=>{
         var three = new Three('ID3');
         three.age = 4;
         three.another = "present!";
         var str = JSON4all.stringify(three);
-        if (version == 'stringifyAnyPlace') {
-            var plain = JSON.parse(str);
-            assert.deepEqual(plain,{
-                "$special": "Three",
-                "$value": {
-                    "id": "ID3",
-                    "age": 4,
-                    "name": {
-                        "$special": "undefined"
-                    }
+        var plain = JSON.parse(str);
+        assert.deepEqual(plain,{
+            "$special": "Three",
+            "$value": {
+                "id": "ID3",
+                "age": 4,
+                "name": {
+                    "$special": "undefined"
                 }
-            })
-        } else {
-            assert.deepEqual(str, `*@Three*id:ID3,name:*!undefined,age:4`)
-        }
+            }
+        })
+        var str = JSON4all.toUrl(three);
+        assert.deepEqual(str, `*@Three,id:ID3,name:*!undefined,age:4`)
+        var o = JSON4all.parse(str);
+        assert.ok(o instanceof ThreeBase);
+        var str2 = JSON4all.toUrl(o);
+        assert.deepEqual(str, str2);
     })
     it("serialize a anonymous object like a registered one", ()=>{
         var threeLike:any = {
@@ -153,21 +148,23 @@ describe("decorators", ()=>{
         };
         JSON4all.pretendClass(threeLike, Three);
         var str = JSON4all.stringify(threeLike);
-        if (version == 'stringifyAnyPlace') {
-            var plain = JSON.parse(str);
-            assert.deepEqual(plain,{
-                "$special": "Three",
-                "$value": {
-                    "id": "ID3",
-                    "age": 4,
-                    "name": {
-                        "$special": "undefined"
-                    }
+        var plain = JSON.parse(str);
+        assert.deepEqual(plain,{
+            "$special": "Three",
+            "$value": {
+                "id": "ID3",
+                "age": 4,
+                "name": {
+                    "$special": "undefined"
                 }
-            })
-        } else {
-            assert.deepEqual(str, `*@Three*id:ID3,name:*!undefined,age:4`)
-        }
+            }
+        })
+        var str = JSON4all.toUrl(threeLike);
+        assert.deepEqual(str, `*@Three,id:ID3,name:*!undefined,age:4`)
+        var o = JSON4all.parse(str);
+        assert.ok(o instanceof ThreeBase);
+        var str2 = JSON4all.toUrl(o);
+        assert.deepEqual(str, str2);
     })
 })
 
