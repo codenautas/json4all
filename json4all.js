@@ -228,12 +228,12 @@ function maxConsumer(){
 
 json4all.maxConsumer = maxConsumer;
 
-json4all.mesureString = function mesureString(value, mesuringAlso){
+json4all.mesureString = function mesureString(value){
     var currentSeparator = null;
     var currentLength = 0;
     var maxLenght = 0;
     for (var char of value) {
-        if (SEPARATOR[char] || char === mesuringAlso) {
+        if (SEPARATOR[char]) {
             if (currentSeparator != char) {
                 currentLength = 0
                 currentSeparator = char
@@ -247,9 +247,10 @@ json4all.mesureString = function mesureString(value, mesuringAlso){
     return [value, maxLenght]
 }
 
-json4all.quoteString = function quoteString(text, mesuringAlso){
+json4all.quoteString = function quoteString(text, escapeColon){
     var value = directStringRegExp.test(text) ? text : JSON.stringify(text);
-    return json4all.mesureString(value,mesuringAlso);
+    if (escapeColon) value = value.replace(/:/g,'\\u003a');
+    return json4all.mesureString(value);
 }
 
 var STAR = '*';
@@ -288,7 +289,7 @@ json4all.toUrlConstruct = function toUrlConstruct(value){
             var cantSimplify = false;
             var max = maxConsumer();
             for (var attr in value) {
-                var pair = [max(json4all.toUrlConstruct(attr, ':')), max(json4all.toUrlConstruct(value[attr]))]
+                var pair = [max(json4all.quoteString(attr, true)), max(json4all.toUrlConstruct(value[attr]))]
                 result.push(pair);
             }
             var lengthSep = max.result + 1;

@@ -185,7 +185,8 @@ var fixtures=[
     {name:'hack-EJSON',expectedV2:false,value: {"$special":"Point","$value":{"x":1,"y":2,"z":3.3}} },
     {name:'hack2EJSON',expectedV2:false,value: {$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}} },
     {name:'hack3EJSON',expectedV2:false,value: {$escape:{$escape:{$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}}}} },
-    {name:'anonymous' ,value: data, expectedV2:`*,one:1,alpha:"α"`, expected:{one:1, alpha:'α'} } 
+    {name:'anonymous' ,value: data, expectedV2:`*,one:1,alpha:"α"`, expected:{one:1, alpha:'α'} },
+    {name:'colon' ,value: {"a:b":{"b:c":"x:::j"}}, expectedV2:`*,,"a\\u003ab"::*,"b\\u003ac":"x:::j"`},
 ];
 
 describe("JSON4all",function(){
