@@ -293,7 +293,7 @@ json4all.toUrlConstruct = function toUrlConstruct(value){
                 result.push(pair);
             }
             var lengthSep = max.result + 1;
-            var PairSep = repeat(':',lengthSep);
+            var PairSep = ':'
             var ListSep = repeat(',',lengthSep);
             if (!cantSimplify && result.length){
                 return [STAR + ListSep + result.map(pair=>pair.join(PairSep)).join(ListSep), lengthSep];
@@ -328,9 +328,9 @@ json4all.isTesting = true;
 
 json4all.getPlainObject = function getPlainObject(payload){
     var i = 0;
-    var PairSep = '';
+    var PairSep = ':';
     var ListSep = '';
-    while (i < payload.length && payload[i] === ',') { i++; ListSep += ','; PairSep += ':' }
+    while (i < payload.length && payload[i] === ',') { i++; ListSep += ',' }
     var result = {}
     var parts = payload.substring(i).split(ListSep);
     for (var part of parts) {
@@ -338,7 +338,7 @@ json4all.getPlainObject = function getPlainObject(payload){
         if (pos < 0) {
             throw new Error('JSON4all.parse error. Lack of colon "' + PairSep + '" in object');
         }
-        var value = json4all.parse(part.substr(pos + i), true);
+        var value = json4all.parse(part.substr(pos + PairSep.length), true);
         if (value !== InternalValueForUnset) {
             result[json4all.parse(part.substr(0, pos))] = value
         }
