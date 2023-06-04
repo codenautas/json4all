@@ -1,14 +1,14 @@
 declare namespace json4all{
-    type AddTypeFunctions={
-        construct:<T>(value:object, Constructor:Function)=>T
-        deconstruct?:<T>(object:T)=>object
-        specialTag?:<T>(object:T)=>string
+    type AddTypeFunctions<T>={
+        construct:(value:Record<string,any>, Constructor:Function)=>T
+        deconstruct?:(object:T)=>Record<string,any>
+        specialTag?:(object:T)=>string
     }
     function parse<T>(jsonText:string):T
     function stringify(object:any):string
     function toUrl(object:any):string
-    function addType(className:string, functions:AddTypeFunctions, skipIfExists?:boolean):void
-    function addType(constructor:Function, functions?:AddTypeFunctions, skipIfExists?:boolean):void
+    function addType(className:string, functions:AddTypeFunctions<any>, skipIfExists?:boolean):void
+    function addType<T>(constructor:()=>T, functions?:AddTypeFunctions<T>, skipIfExists?:boolean):void
     function anonymizate<T>(classedObject:T):object
     function nonymizate<T>(plainValue:object, Constructor:Function):T
     function RefStoreSpace(globalSpace:object):void

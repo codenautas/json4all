@@ -4,6 +4,7 @@
         "strict": true,
         "target": "ES2019",
         "module": "umd",
+        "moduleResolution": "node",
         "noUnusedLocals": true,
         "lib": ["ES2019"],
         "typeRoots" : ["../../node_modules/@types"],

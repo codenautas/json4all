@@ -7,7 +7,10 @@ var JSON4all = require('../../json4all.js');
 var ExampleClass = ExampleClass = require('./example-class.js');
 
 var bestGlobals = require('best-globals');
-const { strict:assert  } = require('assert');
+// const { strict:assert  } = require('assert');
+const assert = require('./MyAssert');
+assert.setBase('discrepances');
+
 const json4all = require('../../json4all.js');
 const { json } = require('body-parser');
 const { Console } = require('console');
