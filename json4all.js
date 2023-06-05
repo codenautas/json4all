@@ -215,15 +215,28 @@ json4all.stringifyAnyPlace = function stringifyAnyPlace(value){
     return JSON.stringify(value, json4all.replacer);
 };
 
-var SEPARATOR = {',':true}
+var CHANNEL = {
+    object:{separator: ','}, 
+    array :{separator: ';'},
+};
+
+var SEPARATOR = {',':'object', ';':'array'}
 
 function maxConsumer(){
-    var fun = function([value, length]){
-        if (length > fun.result) fun.result = length;
-        return value
+    var fun = function(node){
+        for (var channel in CHANNEL) {
+            if (node[channel] > fun[channel]) fun[channel] = node[channel];
+        }
+        return node.value
     }
-    fun.result = null;
+    for (var channel in CHANNEL) {
+        fun[channel] = null;
+    }
     return fun;
+}
+
+function simpleValue(value){
+    return {value: value, object:0, array:0}
 }
 
 json4all.maxConsumer = maxConsumer;
@@ -231,20 +244,21 @@ json4all.maxConsumer = maxConsumer;
 json4all.mesureString = function mesureString(value){
     var currentSeparator = null;
     var currentLength = 0;
-    var maxLenght = 0;
+    var result = simpleValue(value);
     for (var char of value) {
-        if (SEPARATOR[char]) {
+        var channel = SEPARATOR[char];
+        if (channel) {
             if (currentSeparator != char) {
                 currentLength = 0
                 currentSeparator = char
             }
             currentLength++
-            if (currentLength > maxLenght) maxLenght = currentLength
+            if (currentLength > result[channel]) result[channel] = currentLength
         } else {
             currentSeparator = null;
         }
     }
-    return [value, maxLenght]
+    return result
 }
 
 json4all.quoteString = function quoteString(text, escapeColon){
@@ -256,15 +270,15 @@ json4all.quoteString = function quoteString(text, escapeColon){
 var STAR = '*';
 
 json4all.toUrl = function toUrl(value){
-    return json4all.toUrlConstruct(value)[0];
+    return json4all.toUrlConstruct(value).value;
 }
 
 var repeat = (str, count) => Array.prototype.concat(new Array(count +1)).join(str);
 
 json4all.toUrlConstruct = function toUrlConstruct(value){
-    if(value === null) return ["null",0];
-    if(value === undefined) return ["*!undefined",0];
-    if(value instanceof Function) return ["*!unset",0];
+    if(value === null) return simpleValue("null");
+    if(value === undefined) return simpleValue("*!undefined");
+    if(value instanceof Function) return simpleValue("*!unset");
     var typeName = constructorName(value);
     if(typeof value === "string"){ 
         if(value[0] === STAR){
@@ -272,31 +286,44 @@ json4all.toUrlConstruct = function toUrlConstruct(value){
         }else{
             return json4all.quoteString(value);
         }
-    } else if (value && typeof value === "object" && !value[RefKey] && !(value instanceof Array) ) {
+    } else if (value && typeof value === "object" && !value[RefKey]) {
         if(!json4all.directTypes[typeName]){
             var typeDef=types[typeName];
             if(typeDef /* && (!onlyValues || typeDef.valueLike)*/){
                 var serializedValue = typeDef.serialize(value)
-                if(typeof serializedValue === "string") return json4all.mesureString(STAR + serializedValue);
-                var [serializedValue, ...serializedRest] = serializedValue
-                return [STAR + serializedValue, ...serializedRest]
+                if (typeof serializedValue === "string") return json4all.mesureString(STAR + serializedValue);
+                serializedValue.value = STAR + serializedValue.value;
+                return serializedValue;
             }else{
                 console.log("JSON4all.stringify unregistered object type", typeName);
                 throw new Error("JSON4all.stringify unregistered object type");
             }
         } else {
-            var result = []
+            var thisChannel = value instanceof Array ? 'array' : 'object';
+            var parts = []
+            var result = simpleValue(null);
             var cantSimplify = false;
             var max = maxConsumer();
-            for (var attr in value) {
-                var pair = [max(json4all.quoteString(attr, true)), max(json4all.toUrlConstruct(value[attr]))]
-                result.push(pair);
+            if (thisChannel == 'array') {
+                for (var i = 0; i < value.length; i++) {
+                    var pair = [max(json4all.toUrlConstruct(value[i]))]
+                    parts.push(pair);
+                }
+            } else {
+                for (var attr in value) {
+                    var pair = [max(json4all.quoteString(attr, true)), max(json4all.toUrlConstruct(value[attr]))]
+                    parts.push(pair);
+                }
             }
-            var lengthSep = max.result + 1;
+            for (var channel in CHANNEL) {
+                result[channel] = (max[channel] || 0) + (channel == thisChannel ? 1 : 0);
+            }
             var PairSep = ':'
-            var ListSep = repeat(',',lengthSep);
-            if (!cantSimplify && result.length){
-                return [STAR + ListSep + result.map(pair=>pair.join(PairSep)).join(ListSep), lengthSep];
+            var lengthSep = result[thisChannel];
+            var ListSep = repeat(CHANNEL[thisChannel].separator, lengthSep);
+            result.value = STAR + ListSep + parts.map(pair=>pair.join(PairSep)).join(ListSep)
+            if (!cantSimplify && parts.length){
+                return result;
             }
         }
     }
@@ -326,21 +353,28 @@ json4all.convertPlain2$special = function convertPlain2$special(o, internally){
 
 json4all.isTesting = true;
 
-json4all.getPlainObject = function getPlainObject(payload){
+json4all.getPlainObject = function getPlainObject(payload, separator, initial, PairSep){
     var i = 0;
-    var PairSep = ':';
     var ListSep = '';
-    while (i < payload.length && payload[i] === ',') { i++; ListSep += ',' }
-    var result = {}
+    while (i < payload.length && payload[i] === separator) { i++; ListSep += separator }
+    var result = initial
     var parts = payload.substring(i).split(ListSep);
+    var index = -1;
     for (var part of parts) {
-        var pos = part.indexOf(PairSep);
-        if (pos < 0) {
-            throw new Error('JSON4all.parse error. Lack of colon "' + PairSep + '" in object');
+        if (PairSep) {
+            var pos = part.indexOf(PairSep);
+            if (pos < 0) {
+                throw new Error('JSON4all.parse error. Lack of colon "' + PairSep + '" in object');
+            }
+            var value = part.substr(pos + PairSep.length);
+            var index = json4all.parse(part.substr(0, pos));
+        } else {
+            var value = part;
+            index ++;
         }
-        var value = json4all.parse(part.substr(pos + PairSep.length), true);
+        var value = json4all.parse(value, true);
         if (value !== InternalValueForUnset) {
-            result[json4all.parse(part.substr(0, pos))] = value
+            result[index] = value
         }
     }
     return result;
@@ -353,13 +387,15 @@ json4all.parse = function parse(text, inner){
         if (payload[0] === '!') {
             if (payload === '!undefined') return undefined;
             if (payload === '!unset') {
-                console.log('********************* UNSET',text, inner)
                 return inner ? InternalValueForUnset : undefined;
             }
             throw new Error('JSON4all.parse unrecognize *! token')
         }
-        if (payload[0] === ',') {
-            return json4all.getPlainObject(payload);
+        if (payload[0] === CHANNEL.object.separator) {
+            return json4all.getPlainObject(payload, CHANNEL.object.separator, {}, ':');
+        }
+        if (payload[0] === CHANNEL.array.separator) {
+            return json4all.getPlainObject(payload, CHANNEL.array.separator, [], null);
         }
         for (var typeName in types) {
             var typeDef = types[typeName];
@@ -402,7 +438,7 @@ json4all.addType = function addType(typeConstructor, functions, skipIfExists){
         return;
     }
     var prefix = '@' + constructorName
-    types[constructorName]={
+    types[constructorName] = {
         construct: functions.construct || function construct(plainValue, constructor){
             return typeConstructor.JSON4reviver(plainValue, constructor);
         },
@@ -412,10 +448,11 @@ json4all.addType = function addType(typeConstructor, functions, skipIfExists){
         specialTag: functions.specialTag || function specialTag(value){
             return constructorName;
         },
-        serialize: functions.serialize ?? function serialize(o){
+        serialize: functions.serialize || function serialize(o){
             var plainObject = 'JSON4replacer' in typeConstructor.prototype ? o.JSON4replacer() : functions.deconstruct(o);
-            var [value, max] =  json4all.toUrlConstruct(plainObject)
-            return [prefix + value.substring(1), max];
+            var result =  json4all.toUrlConstruct(plainObject)
+            result.value = prefix + result.value.substring(1);
+            return result;
         },
         deserialize: functions.deserialize || function deserialize(plainValue){
             if (plainValue.startsWith(prefix + ',')) {
@@ -541,7 +578,7 @@ json4all.addProperty = function(constructorPosition){
     if(typeof constructorPosition === "number"){
         return innerFunction
     }else{
-        return innerFunction(...arguments)
+        return innerFunction.apply(null, arguments);
     }
 }
 
