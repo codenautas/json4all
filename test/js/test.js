@@ -65,12 +65,12 @@ describe("maxConsumer", function(){
     var maxConsumer = json4all.maxConsumer;
     it("results 0 if no consuming", function(){
         var max = maxConsumer();
-        assert.equal(max.result, null);
+        assert.equal(max.object, null);
     })
     it("returns the first argument", function(){
         var argument = {the:'x'};
         var max = maxConsumer();
-        var obtained = max([argument]);
+        var obtained = max({value:argument});
         assert.equal(obtained, argument);
     })
     it("returns all the arguments, get max", function(){
@@ -79,14 +79,15 @@ describe("maxConsumer", function(){
         var argument3 = {the:'3'};
         var max = maxConsumer();
         var obtained = [
-            max([argument1,3]), 
-            max([argument2,9]),
-            max([argument3,2]),
+            max({value:argument1, object:3, array:1}), 
+            max({value:argument2, object:9, array:1}),
+            max({value:argument3, object:2, array:1}),
         ];
         assert.equal(obtained[0], argument1);
         assert.equal(obtained[1], argument2);
         assert.equal(obtained[2], argument3);
-        assert.equal(max.result, 9);
+        assert.equal(max.object, 9);
+        assert.equal(max.array, 1);
     })
 })
 
@@ -108,8 +109,6 @@ Point.JSON4reviver=function(o){ return new Point(o.x, o.y, o.z); }
 
 JSON4all.addType(Point);
 
-var today = new Date();
-
 var data = new function(){
     this.one=1;
     this.alpha='α';
@@ -124,15 +123,16 @@ describe("common JSON behavior", function(){
 });
 
 var now = new Date();
+var nowIso = now.toISOString();
 var hourStrFromToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString().substring(10);
 
 var fixtures=[
     {name:'strDate'   ,value: "2012-01-02"                 , expectedV2:`"2012-01-02"`},
     {name:'strStr'    ,value: "hola"                       , expectedV2:`hola`},
     {name:'parte'     ,value: parte                        , expectedV2:`*,parteA:A`},
-    {name:'partes'    ,value: [parte, parte]               },
+    {name:'partes'    ,value: [parte, parte]               , expectedV2:`*;*,parteA:A;*,parteA:A`},
     {name:'rombo'     ,value: {a:parte, b:parte}           , expectedV2:`*,,a:*,parteA:A,,b:*,parteA:A`, alterV2:`*,a:{"parteA":"A"},b:{"parteA":"A"}`},
-    {name:'array'     ,value: [1,"2", false]               },
+    {name:'array'     ,value: [1,"2", false]               , expectedV2:`*;1;"2";false`},
     {name:'fecha'     ,value: new Date(-20736000000)       , expectedV2:`*1969-05-06T00:00:00.000Z`, expectEncode: '{"$special":"Date","$value":-20736000000}', check:function(o){ return o instanceof Date; }},
     {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}  , expectedV2:`*,a:1,f:*2016-03-02`+hourStrFromToday, check:function(o){ return o.f instanceof Date; }},
     {name:'{{fecha}}' ,value: {a:{f:new Date(2016,2,2)}}   , expectedV2:false, check:function(o){ return o.a.f instanceof Date; }},
@@ -140,12 +140,12 @@ var fixtures=[
     {bg:true, name:'{fech}',value: {a:1, f:date.ymd(2016,2,2)}, expectedV2:`*,a:1,f:*2016-02-02`, check:function(o){ return o.f.isRealDate; }, skipDeepEqual:true},
     {bg:true, name:'datetime',value: datetime.iso("1999-12-31"), expectedV2:`*1999-12-31 00:00`, expectEncode: '{"$special":"Datetime","$value":"1999-12-31"}', check:function(o){ return o instanceof bestGlobals.Datetime; }},
     {bg:true, name:'{datetime}',value: {a:1, f:datetime.ymdHms(2016,2,2,12,1,2)}, expectedV2:`*,a:1,f:*2016-02-02 12:01:02`, check:function(o){ return o.f instanceof bestGlobals.Datetime; }},
-    {name:'bigNumber' ,value: 12345678901234567890         },
-    {name:'bool'      ,value: true                         },
-    {name:'null'      ,value: null                         },
+    {name:'bigNumber' ,value: 12345678901234567890         , expectedV2:`12345678901234567000`},
+    {name:'bool'      ,value: true                         , expectedV2:`true`},
+    {name:'null'      ,value: null                         , expectedV2:`null`},
     {name:'undef'     ,value: undefined                     , expectedV2:`*!undefined`, expectEncode: '{"$special":"undefined"}'},
     {name:'{undef}'   ,value: {a:undefined}                 , expectedV2:`*,a:*!undefined`, expectEncode: '{"a":{"$special":"undefined"}}'},
-    {name:'[undef]'   ,value: [0,undefined,"0",null,false]  , expectEncode: '[0,{"$special":"undefined"},"0",null,false]', 
+    {name:'[undef]'   ,value: [0,undefined,"0",null,false]  , expectedV2:`*;0;*!undefined;"0";null;false`, expectEncode: '[0,{"$special":"undefined"},"0",null,false]', 
                    expected2: [0,          "0",null,false] },
     {name:'{}'        ,value: {}                           , expectedV2:'{}', expectEncode:'{}'},
     {name:'{{{}}}'    ,value: {a:{d:{},e:{}},b:2,c:{}}     , expectedV2:'*,,a:*,d:{},e:{},,b:2,,c:{}'},
@@ -161,10 +161,10 @@ var fixtures=[
     {name:'fun'       ,value: function(x){ return x+1; }   , expectedV2:`*!unset` , expectEncode: '{"$special":"undefined"}', expected: undefined},
     {name:'{fun}'     ,value: {f:function(x){ return x+1; }}, expectedV2:`*,f:*!unset`, expectEncode: '{"f":{"$special":"unset"}}', expected:{} },
     {name:'complex'   ,
-        value:    {list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:today},_:'333'}],f:function(){return 3;}},
-        expected: {list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:today},_:'333'}]                        },
-        expected2:{list1:[{one:{two:['the list',32,'33',null,          '}'],'3':33,'length':4,d:today},_:'333'}]                        },
-        expectedV2:false
+        value:    {list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:now},_:'333'}],f:function(){return 3;}},
+        expected: {list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:now},_:'333'}]                        },
+        expected2:{list1:[{one:{two:['the list',32,'33',null,          '}'],'3':33,'length':4,d:now},_:'333'}]                        },
+        expectedV2:`*,,,list1:*;;*,,one:*,"3":33,two:*;"the list";32;"33";null;*!undefined;"}",length:4,d:*${nowIso},,_:"333",,,f:*!unset`
     },
     {name:'h1-JSON4all' ,value: {d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}, 
         expectEncode: JSON.stringify({d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}),
@@ -173,7 +173,7 @@ var fixtures=[
     },
     {name:'h2-JSON4all' ,value: {$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}},
         expectEncode: JSON.stringify({$escape:{$escape:{d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}}}),
-        expectedV2:false
+        expectedV2:`*,,,"$escape":*,,d:*,"$special":Date,"$value":1456887600000,,u:*,"$special":undefined`
         /* expected2: */
     },
     {name:'h3-JSON4all' ,value: {$escape:{$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'},e:{$escape:true}}}},expectedV2:false},
