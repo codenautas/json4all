@@ -262,12 +262,13 @@ json4all.mesureString = function mesureString(value){
 }
 
 json4all.quoteString = function quoteString(text, escapeColon){
-    var value = directStringRegExp.test(text) ? text : JSON.stringify(text);
+    var value = directStringRegExp.test(text) && !directRegExp.test(text) ? text : JSON.stringify(text);
     if (escapeColon) value = value.replace(/:/g,'\\u003a');
     return json4all.mesureString(value);
 }
 
 var STAR = '*';
+var BANG = '!';
 
 json4all.toUrl = function toUrl(value){
     return json4all.toUrlConstruct(value).value;
@@ -277,22 +278,22 @@ var repeat = (str, count) => Array.prototype.concat(new Array(count +1)).join(st
 
 json4all.toUrlConstruct = function toUrlConstruct(value){
     if(value === null) return simpleValue("null");
-    if(value === undefined) return simpleValue("*!undefined");
-    if(value instanceof Function) return simpleValue("*!unset");
+    if(value === undefined) return simpleValue("!undefined");
+    if(value instanceof Function) return simpleValue("!unset");
     var typeName = constructorName(value);
     if(typeof value === "string"){ 
-        if(value[0] === STAR){
-            return json4all.mesureString(STAR + value);
-        }else{
+        // if(value[0] === STAR){
+        //     return json4all.mesureString(STAR + value);
+        // }else{
             return json4all.quoteString(value);
-        }
+        // }
     } else if (value && typeof value === "object" && !value[RefKey]) {
         if(!json4all.directTypes[typeName]){
             var typeDef=types[typeName];
             if(typeDef /* && (!onlyValues || typeDef.valueLike)*/){
                 var serializedValue = typeDef.serialize(value)
-                if (typeof serializedValue === "string") return json4all.mesureString(STAR + serializedValue);
-                serializedValue.value = STAR + serializedValue.value;
+                if (typeof serializedValue === "string") return json4all.mesureString(serializedValue);
+                // serializedValue.value = BANG + serializedValue.value;
                 return serializedValue;
             }else{
                 console.log("JSON4all.stringify unregistered object type", typeName);
@@ -321,7 +322,7 @@ json4all.toUrlConstruct = function toUrlConstruct(value){
             var PairSep = ':'
             var lengthSep = result[thisChannel];
             var ListSep = repeat(CHANNEL[thisChannel].separator, lengthSep);
-            result.value = STAR + ListSep + parts.map(pair=>pair.join(PairSep)).join(ListSep)
+            result.value = ListSep + parts.map(pair=>pair.join(PairSep)).join(ListSep)
             if (!cantSimplify && parts.length){
                 return result;
             }
@@ -358,7 +359,7 @@ json4all.getPlainObject = function getPlainObject(payload, separator, initial, P
     var ListSep = '';
     while (i < payload.length && payload[i] === separator) { i++; ListSep += separator }
     var result = initial
-    var parts = payload.substring(i).split(ListSep);
+    var parts = payload.substr(i).split(ListSep);
     var index = -1;
     for (var part of parts) {
         if (PairSep) {
@@ -381,45 +382,57 @@ json4all.getPlainObject = function getPlainObject(payload, separator, initial, P
 }
 
 json4all.parse = function parse(text, inner){
-    if (text[0] === STAR) {
-        var payload = text.substring(1);
-        if (payload[0] === STAR) return payload;
-        if (payload[0] === '!') {
-            if (payload === '!undefined') return undefined;
-            if (payload === '!unset') {
-                return inner ? InternalValueForUnset : undefined;
+    var payload = text[0] === STAR ? text.substr(1) : text;
+    if (payload[0] === BANG) {
+        payload = payload.substr(1);
+        if (payload === 'undefined') return undefined;
+        if (payload === 'unset') {
+            return inner ? InternalValueForUnset : undefined;
+        }
+        if (payload[0] == '@') {
+            var commaPosition = payload.indexOf(',');
+            var className = payload.substr(1, commaPosition - 1);
+            var typeDef = types[className];
+            if (!typeDef) {
+                throw new Error('JSON4all.parse unrecognize className ' + className);
             }
-            throw new Error('JSON4all.parse unrecognize *! token')
+            return typeDef.deserialize(payload).value;
         }
-        if (payload[0] === CHANNEL.object.separator) {
-            return json4all.getPlainObject(payload, CHANNEL.object.separator, {}, ':');
+        if (payload[0] == '/') {
+            var typeDef = types.RegExp;
+            return typeDef.deserialize(payload).value;
         }
-        if (payload[0] === CHANNEL.array.separator) {
-            return json4all.getPlainObject(payload, CHANNEL.array.separator, [], null);
+        throw new Error('JSON4all.parse unrecognize ! token')
+    }
+    if (payload[0] === CHANNEL.object.separator) {
+        return json4all.getPlainObject(payload, CHANNEL.object.separator, {}, ':');
+    }
+    if (payload[0] === CHANNEL.array.separator) {
+        return json4all.getPlainObject(payload, CHANNEL.array.separator, [], null);
+    }
+    for (var typeName in types) {
+        var typeDef = types[typeName];
+        var okDetected = null;
+        /* istanbul ignore next */
+        if(!typeDef.deserialize){
+            throw new Error("JSON4all.parse type without deserialize: "+typeName)
         }
-        for (var typeName in types) {
-            var typeDef = types[typeName];
-            var okDetected = null;
-            /* istanbul ignore next */
-            if(!typeDef.deserialize){
-                throw new Error("JSON4all.parse type without deserialize: "+typeName)
-            }
-            var valueOk = null;
-            var {ok, value} = typeDef.deserialize(payload);
-            if(ok){
-                valueOk = value;
-                if(json4all.isTesting){
-                    if (okDetected) {
-                        console.log("More than one way",typeName,okDetected,text,value,valueOk);
-                        throw Error("")
-                    }
-                    okDetected = typeName;
+        var valueOk = null;
+        var {ok, value} = typeDef.deserialize(payload);
+        if(ok){
+            valueOk = value;
+            if(json4all.isTesting){
+                if (okDetected) {
+                    console.log("More than one way",typeName,okDetected,text,value,valueOk);
+                    throw Error("")
                 }
-                break;
+                okDetected = typeName;
             }
+            break;
         }
-        if (okDetected) return valueOk;
-    }else if (typeof text === "string" && !directRegExp.test(text)) {
+    }
+    if (okDetected) return valueOk;
+    if (typeof text === "string" && !directRegExp.test(text)) {
         return text;
     }
     /* istanbul ignore next */ // For IE compatibility
@@ -451,12 +464,12 @@ json4all.addType = function addType(typeConstructor, functions, skipIfExists){
         serialize: functions.serialize || function serialize(o){
             var plainObject = 'JSON4replacer' in typeConstructor.prototype ? o.JSON4replacer() : functions.deconstruct(o);
             var result =  json4all.toUrlConstruct(plainObject)
-            result.value = prefix + result.value.substring(1);
+            result.value = BANG + prefix + result.value;
             return result;
         },
         deserialize: functions.deserialize || function deserialize(plainValue){
             if (plainValue.startsWith(prefix + ',')) {
-                var plainObject = json4all.parse(STAR + plainValue.substring(prefix.length),constructor);
+                var plainObject = json4all.parse(STAR + plainValue.substr(prefix.length),constructor);
                 return {
                     ok:true, 
                     value:'JSON4replacer' in typeConstructor.prototype ? typeConstructor.JSON4reviver(plainObject, typeConstructor) : functions.construct(plainObject, typeConstructor)
@@ -498,10 +511,10 @@ json4all.addType(RegExp, {
         return new RegExp(plainValue.source, plainValue.flags); 
     }, 
     deconstruct: function deconstruct(o){
-        return {source: o.source, flags: o.toString().substring(o.toString().lastIndexOf('/')+1)};
+        return {source: o.source, flags: o.toString().substr(o.toString().lastIndexOf('/')+1)};
     },
     serialize: function serialize(o){
-        return '/' + o.source + '/' + o.flags;
+        return BANG + '/' + o.source + '/' + o.flags;
     },
     deserialize: function deserialize(plainValue){
         var ok = false

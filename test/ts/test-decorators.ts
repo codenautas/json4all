@@ -111,8 +111,9 @@ describe("decorators", ()=>{
             }
         })
         str = JSON4all.toUrl(threeBase);
-        assert.deepEqual(str, `*@ThreeBase,id:id3,name:*!undefined,age:0`);
+        assert.deepEqual(str, `!@ThreeBase,id:id3,name:!undefined,age:0`);
         var o = JSON4all.parse(str);
+        // console.log('xxxxxxxxxxxxxxx', o)
         assert.ok(o instanceof ThreeBase);
         var str2 = JSON4all.toUrl(o);
         assert.deepEqual(str, str2);
@@ -134,7 +135,7 @@ describe("decorators", ()=>{
             }
         })
         var str = JSON4all.toUrl(three);
-        assert.deepEqual(str, `*@Three,id:ID3,name:*!undefined,age:4`)
+        assert.deepEqual(str, `!@Three,id:ID3,name:!undefined,age:4`)
         var o = JSON4all.parse(str);
         assert.ok(o instanceof ThreeBase);
         var str2 = JSON4all.toUrl(o);
@@ -160,7 +161,7 @@ describe("decorators", ()=>{
             }
         })
         var str = JSON4all.toUrl(threeLike);
-        assert.deepEqual(str, `*@Three,id:ID3,name:*!undefined,age:4`)
+        assert.deepEqual(str, `!@Three,id:ID3,name:!undefined,age:4`)
         var o = JSON4all.parse(str);
         assert.ok(o instanceof ThreeBase);
         var str2 = JSON4all.toUrl(o);

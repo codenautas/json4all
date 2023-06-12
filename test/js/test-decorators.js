@@ -137,8 +137,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 }
             });
             str = JSON4all.toUrl(threeBase);
-            assert_1.strict.deepEqual(str, `*@ThreeBase,id:id3,name:*!undefined,age:0`);
+            assert_1.strict.deepEqual(str, `!@ThreeBase,id:id3,name:!undefined,age:0`);
             var o = JSON4all.parse(str);
+            // console.log('xxxxxxxxxxxxxxx', o)
             assert_1.strict.ok(o instanceof ThreeBase);
             var str2 = JSON4all.toUrl(o);
             assert_1.strict.deepEqual(str, str2);
@@ -160,7 +161,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 }
             });
             var str = JSON4all.toUrl(three);
-            assert_1.strict.deepEqual(str, `*@Three,id:ID3,name:*!undefined,age:4`);
+            assert_1.strict.deepEqual(str, `!@Three,id:ID3,name:!undefined,age:4`);
             var o = JSON4all.parse(str);
             assert_1.strict.ok(o instanceof ThreeBase);
             var str2 = JSON4all.toUrl(o);
@@ -186,7 +187,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 }
             });
             var str = JSON4all.toUrl(threeLike);
-            assert_1.strict.deepEqual(str, `*@Three,id:ID3,name:*!undefined,age:4`);
+            assert_1.strict.deepEqual(str, `!@Three,id:ID3,name:!undefined,age:4`);
             var o = JSON4all.parse(str);
             assert_1.strict.ok(o instanceof ThreeBase);
             var str2 = JSON4all.toUrl(o);

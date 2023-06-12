@@ -129,64 +129,65 @@ var hourStrFromToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()
 var fixtures=[
     {name:'strDate'   ,value: "2012-01-02"                 , expectedV2:`"2012-01-02"`},
     {name:'strStr'    ,value: "hola"                       , expectedV2:`hola`},
-    {name:'parte'     ,value: parte                        , expectedV2:`*,parteA:A`},
-    {name:'partes'    ,value: [parte, parte]               , expectedV2:`*;*,parteA:A;*,parteA:A`},
-    {name:'rombo'     ,value: {a:parte, b:parte}           , expectedV2:`*,,a:*,parteA:A,,b:*,parteA:A`, alterV2:`*,a:{"parteA":"A"},b:{"parteA":"A"}`},
-    {name:'array'     ,value: [1,"2", false]               , expectedV2:`*;1;"2";false`},
-    {name:'fecha'     ,value: new Date(-20736000000)       , expectedV2:`*1969-05-06T00:00:00.000Z`, expectEncode: '{"$special":"Date","$value":-20736000000}', check:function(o){ return o instanceof Date; }},
-    {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}  , expectedV2:`*,a:1,f:*2016-03-02`+hourStrFromToday, check:function(o){ return o.f instanceof Date; }},
+    {name:'parte'     ,value: parte                        , expectedV2:`,parteA:A`, alterV2:'*,parteA:A'},
+    {name:'partes'    ,value: [parte, parte]               , expectedV2:`;,parteA:A;,parteA:A`},
+    {name:'rombo'     ,value: {a:parte, b:parte}           , expectedV2:`,,a:,parteA:A,,b:,parteA:A`, alterV2:`,a:{"parteA":"A"},b:{"parteA":"A"}`},
+    {name:'array'     ,value: [1,"2", false]               , expectedV2:`;1;"2";false`},
+    {name:'fecha'     ,value: new Date(-20736000000)       , expectedV2:`1969-05-06T00:00:00.000Z`, expectEncode: '{"$special":"Date","$value":-20736000000}', check:function(o){ return o instanceof Date; }},
+    {name:'{fecha}'   ,value: {a:1, f:new Date(2016,2,2)}  , expectedV2:`,a:1,f:2016-03-02`+hourStrFromToday, check:function(o){ return o.f instanceof Date; }},
     {name:'{{fecha}}' ,value: {a:{f:new Date(2016,2,2)}}   , expectedV2:false, check:function(o){ return o.a.f instanceof Date; }},
-    {bg:true, name:'fech',value: date.iso("1999-12-31")    , expectedV2:`*1999-12-31`, expectEncode: '{"$special":"date","$value":"1999-12-31"}', check:function(o){ return o instanceof Date && o.isRealDate; }, skipDeepEqual:true},
-    {bg:true, name:'{fech}',value: {a:1, f:date.ymd(2016,2,2)}, expectedV2:`*,a:1,f:*2016-02-02`, check:function(o){ return o.f.isRealDate; }, skipDeepEqual:true},
-    {bg:true, name:'datetime',value: datetime.iso("1999-12-31"), expectedV2:`*1999-12-31 00:00`, expectEncode: '{"$special":"Datetime","$value":"1999-12-31"}', check:function(o){ return o instanceof bestGlobals.Datetime; }},
-    {bg:true, name:'{datetime}',value: {a:1, f:datetime.ymdHms(2016,2,2,12,1,2)}, expectedV2:`*,a:1,f:*2016-02-02 12:01:02`, check:function(o){ return o.f instanceof bestGlobals.Datetime; }},
+    {bg:true, name:'fech',value: date.iso("1999-12-31")    , expectedV2:`1999-12-31`, alterV2:'*1999-12-31', expectEncode: '{"$special":"date","$value":"1999-12-31"}', check:function(o){ return o instanceof Date && o.isRealDate; }, skipDeepEqual:true},
+    {bg:true, name:'{fech}',value: {a:1, f:date.ymd(2016,2,2)}, expectedV2:`,a:1,f:2016-02-02`, check:function(o){ return o.f.isRealDate; }, skipDeepEqual:true},
+    {bg:true, name:'datetime',value: datetime.iso("1999-12-31"), expectedV2:`1999-12-31 00:00`, expectEncode: '{"$special":"Datetime","$value":"1999-12-31"}', check:function(o){ return o instanceof bestGlobals.Datetime; }},
+    {bg:true, name:'{datetime}',value: {a:1, f:datetime.ymdHms(2016,2,2,12,1,2)}, expectedV2:`,a:1,f:2016-02-02 12:01:02`, check:function(o){ return o.f instanceof bestGlobals.Datetime; }},
     {name:'bigNumber' ,value: 12345678901234567890         , expectedV2:`12345678901234567000`},
+    {name:'"true"'    ,value: "true"                       , expectedV2:`"true"`},
     {name:'bool'      ,value: true                         , expectedV2:`true`},
     {name:'null'      ,value: null                         , expectedV2:`null`},
-    {name:'undef'     ,value: undefined                     , expectedV2:`*!undefined`, expectEncode: '{"$special":"undefined"}'},
-    {name:'{undef}'   ,value: {a:undefined}                 , expectedV2:`*,a:*!undefined`, expectEncode: '{"a":{"$special":"undefined"}}'},
-    {name:'[undef]'   ,value: [0,undefined,"0",null,false]  , expectedV2:`*;0;*!undefined;"0";null;false`, expectEncode: '[0,{"$special":"undefined"},"0",null,false]', 
-                   expected2: [0,          "0",null,false] },
+    {name:'undef'     ,value: undefined                    , expectedV2:`!undefined`, alterV2:'*!undefined', expectEncode: '{"$special":"undefined"}'},
+    {name:'{undef}'   ,value: {a:undefined}                , expectedV2:`,a:!undefined`, expectEncode: '{"a":{"$special":"undefined"}}'},
+    {name:'[undef]'   ,value: [0,undefined,"0",null,false] , expectedV2:`;0;!undefined;"0";null;false`, expectEncode: '[0,{"$special":"undefined"},"0",null,false]', 
+                   expected2: [0,          "0",null,false]},
     {name:'{}'        ,value: {}                           , expectedV2:'{}', expectEncode:'{}'},
-    {name:'{{{}}}'    ,value: {a:{d:{},e:{}},b:2,c:{}}     , expectedV2:'*,,a:*,d:{},e:{},,b:2,,c:{}'},
+    {name:'{{{}}}'    ,value: {a:{d:{},e:{}},b:2,c:{}}     , expectedV2:',,a:,d:{},e:{},,b:2,,c:{}'},
     {name:'[]'        ,value: []                           , expectedV2:'[]', expectEncode:'[]'},
-    {name:'regex'     ,value: /hola/gi                     , expectedV2:`*/hola/gi`},
-    {name:'regex_no_attr',value: /[a-z]/                   , expectedV2:`*/[a-z]/`},
-    {name:'{regex}'   ,value: {r:/hola/}                   , expectedV2:`*,r:*/hola/`    , check:function(o){ return o.r instanceof RegExp; }},
-    {name:'{{regex}}' ,value: {a:{r:/hola/}}               , expectedV2:`*,,a:*,r:*/hola/` ,alterV2:`{"a":{"r":{"$special":"RegExp","$value":{"source":"hola","flags":""}}}}` , check:function(o){ return o.a.r instanceof RegExp; }},
-    {name:'*star'     ,value: '*star'                      , expectedV2:'**star', expectEncode:'"*star"'},
-    {name:'{*star}'   ,value: {r:'*star'}                  , expectedV2:'*,r:**star', expectEncode:'{"r":"*star"}'},
-    {name:'{{*alfa}}' ,value: {a:{r:'*alfa'},r:'*beta'}    , expectedV2:'*,,a:*,r:**alfa,,r:**beta', alterV2:'*a:{"r":"*alfa"},r:**beta', expectEncode:'{"a":{"r":"*alfa"},"r":"*beta"}'},
-    {name:'{{",,,"}}' ,value: {a:{r:',,,'}}                , expectedV2:'*,,,,,a:*,,,,r:",,,"' },
-    {name:'fun'       ,value: function(x){ return x+1; }   , expectedV2:`*!unset` , expectEncode: '{"$special":"undefined"}', expected: undefined},
-    {name:'{fun}'     ,value: {f:function(x){ return x+1; }}, expectedV2:`*,f:*!unset`, expectEncode: '{"f":{"$special":"unset"}}', expected:{} },
+    {name:'regex'     ,value: /hola/gi                     , expectedV2:`!/hola/gi`},
+    {name:'regex_no_attr',value: /[a-z]/                   , expectedV2:`!/[a-z]/`},
+    {name:'{regex}'   ,value: {r:/hola/}                   , expectedV2:`,r:!/hola/`    , check:function(o){ return o.r instanceof RegExp; }},
+    {name:'{{regex}}' ,value: {a:{r:/hola/}}               , expectedV2:`,,a:,r:!/hola/` ,alterV2:`{"a":{"r":{"$special":"RegExp","$value":{"source":"hola","flags":""}}}}` , check:function(o){ return o.a.r instanceof RegExp; }},
+    {name:'*star'     ,value: '*star'                      , expectedV2:'"*star"', expectEncode:'"*star"'},
+    {name:'{*star}'   ,value: {r:'*star'}                  , expectedV2:',r:"*star"', expectEncode:'{"r":"*star"}'},
+    {name:'{{*alfa}}' ,value: {a:{r:'*alfa'},r:'*beta'}    , expectedV2:',,a:,r:"*alfa",,r:"*beta"', alterV2:'*,a:{"r":"*alfa"},r:"*beta"', expectEncode:'{"a":{"r":"*alfa"},"r":"*beta"}'},
+    {name:'{{",,,"}}' ,value: {a:{r:',,,'}}                , expectedV2:',,,,,a:,,,,r:",,,"' },
+    {name:'fun'       ,value: function(x){ return x+1; }   , expectedV2:`!unset` , expectEncode: '{"$special":"undefined"}', expected: undefined},
+    {name:'{fun}'     ,value: {f:function(x){ return x+1; }}, expectedV2:`,f:!unset`, expectEncode: '{"f":{"$special":"unset"}}', expected:{} },
     {name:'complex'   ,
         value:    {list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:now},_:'333'}],f:function(){return 3;}},
         expected: {list1:[{one:{two:['the list',32,'33',null,undefined,'}'],'3':33,'length':4,d:now},_:'333'}]                        },
         expected2:{list1:[{one:{two:['the list',32,'33',null,          '}'],'3':33,'length':4,d:now},_:'333'}]                        },
-        expectedV2:`*,,,list1:*;;*,,one:*,"3":33,two:*;"the list";32;"33";null;*!undefined;"}",length:4,d:*${nowIso},,_:"333",,,f:*!unset`
+        expectedV2:`,,,list1:;;,,one:,"3":33,two:;"the list";32;"33";null;!undefined;"}",length:4,d:${nowIso},,_:"333",,,f:!unset`
     },
     {name:'h1-JSON4all' ,value: {d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}, 
         expectEncode: JSON.stringify({d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}),
-        expectedV2:`*,,d:*,\"$special\":Date,\"$value\":1456887600000,,u:*,\"$special\":undefined`,
+        expectedV2:`,,d:,\"$special\":Date,\"$value\":1456887600000,,u:,\"$special\":undefined`,
         /* expected2:runningInBrowser */
     },
     {name:'h2-JSON4all' ,value: {$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}},
         expectEncode: JSON.stringify({$escape:{$escape:{d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}}}),
-        expectedV2:`*,,,"$escape":*,,d:*,"$special":Date,"$value":1456887600000,,u:*,"$special":undefined`
+        expectedV2:`,,,"$escape":,,d:,"$special":Date,"$value":1456887600000,,u:,"$special":undefined`
         /* expected2: */
     },
     {name:'h3-JSON4all' ,value: {$escape:{$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'},e:{$escape:true}}}},expectedV2:false},
     {name:'Point'     ,value: new Point(1,2,3.3), 
         check:function(o){ return o instanceof Point; } , 
-        expectedV2: `*@Point,x:1,y:2,z:3.3`,
+        expectedV2: `!@Point,x:1,y:2,z:3.3`,
         expectEncode:'{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}'
     },
     {name:'hack-EJSON',expectedV2:false,value: {"$special":"Point","$value":{"x":1,"y":2,"z":3.3}} },
     {name:'hack2EJSON',expectedV2:false,value: {$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}} },
     {name:'hack3EJSON',expectedV2:false,value: {$escape:{$escape:{$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}}}} },
-    {name:'anonymous' ,value: data, expectedV2:`*,one:1,alpha:"α"`, expected:{one:1, alpha:'α'} },
-    {name:'colon' ,value: {"a:b":{"b:c":"x:::j"}}, expectedV2:`*,,"a\\u003ab":*,"b\\u003ac":"x:::j"`},
+    {name:'anonymous' ,value: data, expectedV2:`,one:1,alpha:"α"`, expected:{one:1, alpha:'α'} },
+    {name:'colon' ,value: {"a:b":{"b:c":"x:::j"}}, expectedV2:`,,"a\\u003ab":,"b\\u003ac":"x:::j"`},
 ];
 
 describe("JSON4all",function(){
@@ -223,6 +224,17 @@ describe("JSON4all",function(){
             if('check' in fixture){
                 expect(fixture.check(decoded)).to.ok();
             }
+            if (fixture.alterV2) {
+                decoded = JSON4all.parse(fixture.alterV2);
+                compareObjects(decoded, expected, fixture, fixture.skipDeepEqual);
+            }
+            // double encoding: 
+            compareObjects(JSON4all.parse(JSON4all.parse(JSON4all.stringify(encoded))), expected, fixture, fixture.skipDeepEqual);
+            var encodedUrl = JSON4all.toUrl(encoded);
+            var encodedUrlOneParse = JSON4all.parse(encodedUrl);
+            compareObjects(JSON4all.parse(encodedUrlOneParse), expected, fixture, fixture.skipDeepEqual);
+            compareObjects(JSON4all.parse(JSON4all.parse(JSON4all.stringify(encodedV2))), expected, fixture, fixture.skipDeepEqual);
+            compareObjects(JSON4all.parse(JSON4all.parse(JSON4all.toUrl(encodedV2))), expected, fixture, fixture.skipDeepEqual);
         });
     });
   }); });
@@ -290,11 +302,11 @@ describe("addType", function(){
             {text: "1 day", o:{days: 1}, expectedJson: 
                 ExampleClass["4client"] ? '{"$special":"ExampleClass","$value":{"days":1}}'
                 : '{"$special":"ExampleClass","$value":{"days":1,"toISO":{"$special":"unset"}}}',
-                expectedV2: `*@ExampleClass,days:1`
+                expectedV2: `!@ExampleClass,days:1`
             },
             {text: "1 year 2 month 3 days 4:05:06", o:{years:1, months:2, days:3, hours:4, minutes:5, seconds:6}, 
-                expectedV2: `*@ExampleClass,years:1,months:2,days:3,hours:4,minutes:5,seconds:6`},
-            {text: "10:30", o:{hours: 10, minutes:30}, expectedV2: `*@ExampleClass,hours:10,minutes:30`},
+                expectedV2: `!@ExampleClass,years:1,months:2,days:3,hours:4,minutes:5,seconds:6`},
+            {text: "10:30", o:{hours: 10, minutes:30}, expectedV2: `!@ExampleClass,hours:10,minutes:30`},
         ].forEach(function(fixture){
             it("handles interval "+fixture.text, function(){
                 if(ExampleClass["4client"]){
