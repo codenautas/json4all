@@ -3,11 +3,12 @@
         "outDir":"../js",
         "strict": true,
         "target": "ES2019",
-        "module": "umd",
+        "module": "NodeNext",
         "noUnusedLocals": true,
         "lib": ["ES2019"],
         "typeRoots" : ["../../node_modules/@types"],
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "moduleResolution": "NodeNext"
     },
     "include": [
         "*.ts"

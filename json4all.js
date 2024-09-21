@@ -216,9 +216,9 @@ json4all.stringifyAnyPlace = function stringifyAnyPlace(value){
 };
 
 var CHANNEL = {
-    object:{separator: ','}, 
-    array :{separator: ';'},
-};
+    object:{separator: ',', pairSeparator:':' , empty: function (){ return {}}}, 
+    array :{separator: ';', pairSeparator:null, empty: function (){ return []}},
+}
 
 var SEPARATOR = {',':'object', ';':'array'}
 
@@ -274,9 +274,13 @@ json4all.toUrl = function toUrl(value){
     return json4all.toUrlConstruct(value).value;
 }
 
+json4all.toUrlLines = function toUrlLines(value, eol){
+    return json4all.toUrlConstruct(value, eol ? eol : '\n').value;
+}
+
 var repeat = (str, count) => Array.prototype.concat(new Array(count +1)).join(str);
 
-json4all.toUrlConstruct = function toUrlConstruct(value){
+json4all.toUrlConstruct = function toUrlConstruct(value, addEol){
     if(value === null) return simpleValue("null");
     if(value === undefined) return simpleValue("!undefined");
     if(value instanceof Function) return simpleValue("!unset");
@@ -321,8 +325,8 @@ json4all.toUrlConstruct = function toUrlConstruct(value){
             }
             var PairSep = ':'
             var lengthSep = result[thisChannel];
-            var ListSep = repeat(CHANNEL[thisChannel].separator, lengthSep);
-            result.value = ListSep + parts.map(pair=>pair.join(PairSep)).join(ListSep)
+            var ListSep = addEol ? addEol : repeat(CHANNEL[thisChannel].separator, lengthSep);
+            result.value = (addEol ? '!json4all' + CHANNEL[thisChannel].separator : '') + ListSep + parts.map(pair=>pair.join(PairSep)).join(ListSep)
             if (!cantSimplify && parts.length){
                 return result;
             }
@@ -356,10 +360,14 @@ json4all.isTesting = true;
 
 json4all.getPlainObject = function getPlainObject(payload, separator, initial, PairSep){
     var i = 0;
-    var ListSep = '';
-    while (i < payload.length && payload[i] === separator) { i++; ListSep += separator }
+    if (separator instanceof RegExp) {
+        var ListSep = separator;
+    } else {
+        var ListSep = '';
+        while (i < payload.length && payload[i] === separator) { i++; ListSep += separator }
+    }
     var result = initial
-    var parts = payload.substr(i).split(ListSep);
+    var parts = payload.split(ListSep).slice(1);
     var index = -1;
     for (var part of parts) {
         if (PairSep) {
@@ -402,13 +410,23 @@ json4all.parse = function parse(text, inner){
             var typeDef = types.RegExp;
             return typeDef.deserialize(payload).value;
         }
+        if (payload.substr(0,8) == 'json4all') {
+            var iSeparator = SEPARATOR[payload[8]];
+            if (iSeparator) {
+                var channel = CHANNEL[iSeparator];
+                if (channel) {
+                    var eol = payload[9] == '\r' && payload[10] == '\n' ? '\r\n' : payload[9] == '\n' ? '\n' : null;
+                    if (eol) {
+                        return json4all.getPlainObject(payload.substr(8 + eol.length), /\r?\n/, channel.empty(), channel.pairSeparator);
+                    }
+                }
+            }
+        }
         throw new Error('JSON4all.parse unrecognize ! token')
     }
-    if (payload[0] === CHANNEL.object.separator) {
-        return json4all.getPlainObject(payload, CHANNEL.object.separator, {}, ':');
-    }
-    if (payload[0] === CHANNEL.array.separator) {
-        return json4all.getPlainObject(payload, CHANNEL.array.separator, [], null);
+    if (SEPARATOR[payload[0]]) {
+        var channel = CHANNEL[SEPARATOR[payload[0]]];
+        return json4all.getPlainObject(payload, channel.separator, channel.empty(), channel.pairSeparator);
     }
     for (var typeName in types) {
         var typeDef = types[typeName];

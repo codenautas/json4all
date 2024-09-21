@@ -276,6 +276,53 @@ describe("JSON4all error conditions",function(){
         discrepances.showAndThrow(obtained,expected);
         compareObjects(obtained,expected);
     });
+    it("array multiline", function(){
+        var object=["one", {two:2, three:[3, 33]}, ["four", "five", {six: 6}]];
+        var expected='!json4all;\none\n,two:2,three:;3;33\n;four;five;,six:6';
+        var obtained = JSON4all.toUrlLines(object);
+        discrepances.showAndThrow(obtained,expected);
+        compareObjects(obtained,expected);
+        var result = JSON4all.parse(obtained);
+        discrepances.showAndThrow(result,object);
+        compareObjects(result,object);
+    });
+    it("object multiline", function(){
+        var object={ONE:"one", TWO:{two:2, three:[3, 33]}, THREE:["four", "five", {six: 6}]};
+        var expected='!json4all,\nONE:one\nTWO:,two:2,three:;3;33\nTHREE:;four;five;,six:6';
+        var obtained = JSON4all.toUrlLines(object);
+        discrepances.showAndThrow(obtained,expected);
+        compareObjects(obtained,expected);
+        var result = JSON4all.parse(obtained);
+        discrepances.showAndThrow(result,object);
+        compareObjects(result,object);
+    });
+    it("url with true and string numbers", function(){
+        var object=["This","is","1","true",0,false];
+        var expected=';This;is;"1";"true";0;false';
+        var obtained = JSON4all.toUrl(object);
+        discrepances.showAndThrow(obtained,expected);
+        compareObjects(obtained,expected);
+        var result = JSON4all.parse(obtained);
+        discrepances.showAndThrow(result,object);
+        compareObjects(result,object);
+    });
+    it("array multiline windows EOL", function(){
+        var object=["This","is","1","true",0,false];
+        var expected='!json4all;\r\nThis\r\nis\r\n"1"\r\n"true"\r\n0\r\nfalse';
+        var obtained = JSON4all.toUrlLines(object, '\r\n');
+        discrepances.showAndThrow(obtained,expected);
+        compareObjects(obtained,expected);
+        var result = JSON4all.parse(obtained);
+        discrepances.showAndThrow(result,object);
+        compareObjects(result,object);
+    });
+    it("parse mixed EOL", function(){
+        var object=["This","is","1","true",0,false];
+        var stringified='!json4all;\nThis\r\nis\n"1"\r\n"true"\r\n0\r\nfalse';
+        var result = JSON4all.parse(stringified);
+        discrepances.showAndThrow(result,object);
+        compareObjects(result,object);
+    });
     it("very bugy condition in some IE", function(){
         var encoded='{"3":{"$special":"Date","$value":-20736000000}}';
         var expected={"3":new Date(-20736000000)};
