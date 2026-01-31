@@ -1,7 +1,7 @@
 {
   "name": "json4all",
   "description": "JSON for all purposes and all environments",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "repository": "codenautas/json4all",
   "license": "MIT",
@@ -39,8 +39,11 @@
   "engines": {
     "node": ">= 12"
   },
-  "nyc":{
-    "reporter": ["lcov", "text-summary"]
+  "nyc": {
+    "reporter": [
+      "lcov",
+      "text-summary"
+    ]
   },
   "scripts": {
     "test1": "tsc -p test/ts && mocha --reporter spec --bail --recursive --check-leaks test/**/test.js",
