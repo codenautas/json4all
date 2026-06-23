@@ -70,6 +70,7 @@
     "coverage": 100,
     "run-in": "both",
     "stability": "extending",
-    "type": "lib"
+    "type": "lib",
+    "gha": "all"
   }
 }
