@@ -258,7 +258,7 @@ describe("decorators and references", () => {
 });
 describe("decorators and references in ClientSide", () => {
     before(() => {
-        // @ts-expect-error quito el ref como si nunca lo hubiera tenido. 
+        // @ts-expect-error quito el ref como si nunca lo hubiera tenido.
         JSON4all.RefStoreSpace(undefined);
     });
     after(() => {

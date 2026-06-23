@@ -201,4 +201,3 @@ NPM version | Device                 | OS            | nav
 ## License
 
 [MIT](LICENSE)
-

@@ -72,15 +72,15 @@ JSON.parse('{"3":"33"}',function(key, value){
 });
 
 /* istanbul ignore next */
-function InternalValueForUndefined(){ 
+function InternalValueForUndefined(){
     /* istanbul ignore next */
-    throw new Error('this is not a function'); 
+    throw new Error('this is not a function');
 }
 
 /* istanbul ignore next */
-function InternalValueForUnset(){ 
+function InternalValueForUnset(){
     /* istanbul ignore next */
-    throw new Error('this is not a function'); 
+    throw new Error('this is not a function');
 }
 
 json4all.directTypes={
@@ -173,7 +173,7 @@ json4all.reviver = function reviver(key, plainValue){
         }
         return object;
     }else if(plainValue!==null && plainValue.$special){
-        if(plainValue.$special==='undefined'){ 
+        if(plainValue.$special==='undefined'){
             if(key===''){
                 return undefined;
             }
@@ -216,7 +216,7 @@ json4all.stringifyAnyPlace = function stringifyAnyPlace(value){
 };
 
 var CHANNEL = {
-    object:{separator: ',', pairSeparator:':' , empty: function (){ return {}}}, 
+    object:{separator: ',', pairSeparator:':' , empty: function (){ return {}}},
     array :{separator: ';', pairSeparator:null, empty: function (){ return []}},
 }
 
@@ -285,7 +285,7 @@ json4all.toUrlConstruct = function toUrlConstruct(value, addEol){
     if(value === undefined) return simpleValue("!undefined");
     if(value instanceof Function) return simpleValue("!unset");
     var typeName = constructorName(value);
-    if(typeof value === "string"){ 
+    if(typeof value === "string"){
         // if(value[0] === STAR){
         //     return json4all.mesureString(STAR + value);
         // }else{
@@ -343,7 +343,7 @@ json4all.convertPlain2$special = function convertPlain2$special(o, internally){
             /* istanbul ignore next */
             var realKey = o[key]===undefined && !isNaN(key)?Number(key):key;
             json4all.convertPlain2$special(o[key], true);
-            var newValue = json4all.reviver(key, o[key]); 
+            var newValue = json4all.reviver(key, o[key]);
             if(newValue===undefined && !(o instanceof Array)){
                 delete o[key];
             }else{
@@ -489,7 +489,7 @@ json4all.addType = function addType(typeConstructor, functions, skipIfExists){
             if (plainValue.startsWith(prefix + ',')) {
                 var plainObject = json4all.parse(STAR + plainValue.substr(prefix.length),constructor);
                 return {
-                    ok:true, 
+                    ok:true,
                     value:'JSON4replacer' in typeConstructor.prototype ? typeConstructor.JSON4reviver(plainObject, typeConstructor) : functions.construct(plainObject, typeConstructor)
                 }
             }
@@ -505,9 +505,9 @@ json4all.addType = function addType(typeConstructor, functions, skipIfExists){
 var NativeDateRegExp = /^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d*)?Z$/;
 
 json4all.DateFunctions = {
-    construct: function construct(plainValue){ 
-        return new Date(plainValue); 
-    }, 
+    construct: function construct(plainValue){
+        return new Date(plainValue);
+    },
     deconstruct: function deconstruct(o){
         return o.getTime();
     },
@@ -525,9 +525,9 @@ json4all.DateFunctions = {
 json4all.addType(Date, json4all.DateFunctions, true);
 
 json4all.addType(RegExp, {
-    construct: function construct(plainValue){ 
-        return new RegExp(plainValue.source, plainValue.flags); 
-    }, 
+    construct: function construct(plainValue){
+        return new RegExp(plainValue.source, plainValue.flags);
+    },
     deconstruct: function deconstruct(o){
         return {source: o.source, flags: o.toString().substr(o.toString().lastIndexOf('/')+1)};
     },
@@ -558,8 +558,8 @@ json4all.RefStoreSpace = (myCollection)=>{
 }
 
 
-/** 
- * @type {<K extends string|number|symbol, V extends {}> (path:(string|number|symbol)[]) => Partial<{[key in V]:v}} 
+/**
+ * @type {<K extends string|number|symbol, V extends {}> (path:(string|number|symbol)[]) => Partial<{[key in V]:v}}
  * */
 json4all.RefStore = (path)=>{
     var myCollection = json4all.$RefStoreSpace;
@@ -577,7 +577,7 @@ json4all.RefStore = (path)=>{
         set:function(target, prop, value){
             if(
                 // @ts-expect-error RefKey no está en el tipo original
-                value[RefKey] == null 
+                value[RefKey] == null
             ){
                 // @ts-expect-error RefKey no está en el tipo original
                 value[RefKey] = [path, prop];

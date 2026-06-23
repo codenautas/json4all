@@ -5,4 +5,4 @@
     "strict": "global",
     "eqnull": true,
     "predef": [ "module", "exports", "console" ]
-} 
+}

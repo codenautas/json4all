@@ -79,7 +79,7 @@ describe("maxConsumer", function(){
         var argument3 = {the:'3'};
         var max = maxConsumer();
         var obtained = [
-            max({value:argument1, object:3, array:1}), 
+            max({value:argument1, object:3, array:1}),
             max({value:argument2, object:9, array:1}),
             max({value:argument3, object:2, array:1}),
         ];
@@ -146,7 +146,7 @@ var fixtures=[
     {name:'null'      ,value: null                         , expectedV2:`null`},
     {name:'undef'     ,value: undefined                    , expectedV2:`!undefined`, alterV2:'*!undefined', expectEncode: '{"$special":"undefined"}'},
     {name:'{undef}'   ,value: {a:undefined}                , expectedV2:`,a:!undefined`, expectEncode: '{"a":{"$special":"undefined"}}'},
-    {name:'[undef]'   ,value: [0,undefined,"0",null,false] , expectedV2:`;0;!undefined;"0";null;false`, expectEncode: '[0,{"$special":"undefined"},"0",null,false]', 
+    {name:'[undef]'   ,value: [0,undefined,"0",null,false] , expectedV2:`;0;!undefined;"0";null;false`, expectEncode: '[0,{"$special":"undefined"},"0",null,false]',
                    expected2: [0,          "0",null,false]},
     {name:'{}'        ,value: {}                           , expectedV2:'{}', expectEncode:'{}'},
     {name:'{{{}}}'    ,value: {a:{d:{},e:{}},b:2,c:{}}     , expectedV2:',,a:,d:{},e:{},,b:2,,c:{}'},
@@ -167,7 +167,7 @@ var fixtures=[
         expected2:{list1:[{one:{two:['the list',32,'33',null,          '}'],'3':33,'length':4,d:now},_:'333'}]                        },
         expectedV2:`,,,list1:;;,,one:,"3":33,two:;"the list";32;"33";null;!undefined;"}",length:4,d:${nowIso},,_:"333",,,f:!unset`
     },
-    {name:'h1-JSON4all' ,value: {d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}, 
+    {name:'h1-JSON4all' ,value: {d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}},
         expectEncode: JSON.stringify({d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}),
         expectedV2:`,,d:,\"$special\":Date,\"$value\":1456887600000,,u:,\"$special\":undefined`,
         /* expected2:runningInBrowser */
@@ -178,8 +178,8 @@ var fixtures=[
         /* expected2: */
     },
     {name:'h3-JSON4all' ,value: {$escape:{$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'},e:{$escape:true}}}},expectedV2:false},
-    {name:'Point'     ,value: new Point(1,2,3.3), 
-        check:function(o){ return o instanceof Point; } , 
+    {name:'Point'     ,value: new Point(1,2,3.3),
+        check:function(o){ return o instanceof Point; } ,
         expectedV2: `!@Point,x:1,y:2,z:3.3`,
         expectEncode:'{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}'
     },
@@ -228,7 +228,7 @@ describe("JSON4all",function(){
                 decoded = JSON4all.parse(fixture.alterV2);
                 compareObjects(decoded, expected, fixture, fixture.skipDeepEqual);
             }
-            // double encoding: 
+            // double encoding:
             compareObjects(JSON4all.parse(JSON4all.parse(JSON4all.stringify(encoded))), expected, fixture, fixture.skipDeepEqual);
             var encodedUrl = JSON4all.toUrl(encoded);
             var encodedUrlOneParse = JSON4all.parse(encodedUrl);
@@ -328,7 +328,7 @@ describe("JSON4all error conditions",function(){
         var expected={"3":new Date(-20736000000)};
         var obtained = JSON4all.parse(encoded);
         compareObjects(obtained,expected);
-        discrepances.showAndThrow(obtained,expected); 
+        discrepances.showAndThrow(obtained,expected);
         compareObjects(obtained,expected);
     });
 });
@@ -346,12 +346,12 @@ JSON4all.addType(ExampleClass,{
 describe("addType", function(){
     describe("ExampleClass", function(){
         [
-            {text: "1 day", o:{days: 1}, expectedJson: 
+            {text: "1 day", o:{days: 1}, expectedJson:
                 ExampleClass["4client"] ? '{"$special":"ExampleClass","$value":{"days":1}}'
                 : '{"$special":"ExampleClass","$value":{"days":1,"toISO":{"$special":"unset"}}}',
                 expectedV2: `!@ExampleClass,days:1`
             },
-            {text: "1 year 2 month 3 days 4:05:06", o:{years:1, months:2, days:3, hours:4, minutes:5, seconds:6}, 
+            {text: "1 year 2 month 3 days 4:05:06", o:{years:1, months:2, days:3, hours:4, minutes:5, seconds:6},
                 expectedV2: `!@ExampleClass,years:1,months:2,days:3,hours:4,minutes:5,seconds:6`},
             {text: "10:30", o:{hours: 10, minutes:30}, expectedV2: `!@ExampleClass,hours:10,minutes:30`},
         ].forEach(function(fixture){
@@ -382,4 +382,3 @@ describe("addType", function(){
         });
     });
 });
-

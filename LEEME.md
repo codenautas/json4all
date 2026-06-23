@@ -34,7 +34,7 @@ $ npm install json4all
 <!--lang:es-->
 # Objetivo
 
-Reemplazar **JSON** por una función que 
+Reemplazar **JSON** por una función que
 * pueda codificar/decodificar:
   * Fechas del tipo nativo **Date**
   * Expresiones regulares del tipo **Regexp**
@@ -42,12 +42,12 @@ Reemplazar **JSON** por una función que
   * Tipos definidos por el usuario
 * sea seguro, o sea no codifique funciones (**Function**)
 * tenga un mecanismo para intercambiar objetos entre el frontend y el backend que:
-  * Envíe al frontend una copia del objeto que tenga solo las propiedades que correponda, 
+  * Envíe al frontend una copia del objeto que tenga solo las propiedades que correponda,
   para esconder la implementación o información que no debe salir del backend
-  * Envíe al frontend una referencia de objeto que permita identificar 
-  la instancia precisa dentro del backend. 
-  Así el frontend recibe una copia de las propiedades que correspondan 
-  y un modo de identificar al objeto preciso del backend. 
+  * Envíe al frontend una referencia de objeto que permita identificar
+  la instancia precisa dentro del backend.
+  Así el frontend recibe una copia de las propiedades que correspondan
+  y un modo de identificar al objeto preciso del backend.
 
 <!--lang:en--]
 # Main goal
@@ -118,15 +118,15 @@ console.log(q instanceof Point); // true
 
 Decorator que registra la clase definida.
 
-Se deben indicar qué propiedades deben serializarse con `addProperty`. 
-Cuando una propiedad es parámetro del constructor principal de la clase 
+Se deben indicar qué propiedades deben serializarse con `addProperty`.
+Cuando una propiedad es parámetro del constructor principal de la clase
 hay que indicar el orden (comenzando en 1) con `addProperty(n)`
 
 <!--lang:en--]
 
 Decorator that registers the class
 
-You must define with `addProperty` with properties you want to serialize. 
+You must define with `addProperty` with properties you want to serialize.
 If a property is in the class main constructor you must use `addProperty(n)`
 (startin with 1).
 
@@ -162,24 +162,24 @@ console.log(q.z); // 3.14
 
 <!--lang:es-->
 
-Registra un objeto como repositorio de instancias referenciables en el backend y copias en el frontend 
-(las modificación copias en el frontend no impactan en el backend). 
+Registra un objeto como repositorio de instancias referenciables en el backend y copias en el frontend
+(las modificación copias en el frontend no impactan en el backend).
 
-Cuando el objeto es serializado en el backend se le agrega una referencia. 
-Al llegar al frontend el objeto es revivido y conservada la referencia. 
+Cuando el objeto es serializado en el backend se le agrega una referencia.
+Al llegar al frontend el objeto es revivido y conservada la referencia.
 
-Cuando el objeto se envía del backend al frontend, al serializarlo solo se envía la referencia 
+Cuando el objeto se envía del backend al frontend, al serializarlo solo se envía la referencia
 (porque al ser una copia no es necesario pasar los datos porque ya están en el backend)
 
 <!--lang:en--]
 
-Registers an object as a repository of referenciable instances in the back-end that can send copies to the front-end. 
+Registers an object as a repository of referenciable instances in the back-end that can send copies to the front-end.
 
-When a object is serialized in the back-end a reference was added to the sended data. In the front-end the object is revived and the reference conserved. 
+When a object is serialized in the back-end a reference was added to the sended data. In the front-end the object is revived and the reference conserved.
 
-When the object is serialized to be send back to de back-end, 
+When the object is serialized to be send back to de back-end,
 it serialize only the reference excluding the properity values
-(because they don't need id to identified the object in the back-end). 
+(because they don't need id to identified the object in the back-end).
 
 
 [!--lang:*-->
@@ -240,7 +240,7 @@ que la llamada a una instancia de clase que tenga sus mismos valores (`JSON.stri
 
 Sets internal properties of a plain object to make the call of `JSON.stringify(object)`
 to return the same value that the call aplied to a instance object of that class with the same values
-(`JSON.stringify(object) === JSON.object(instance)`). 
+(`JSON.stringify(object) === JSON.object(instance)`).
 
 [!--lang:*-->
 
@@ -281,4 +281,3 @@ NPM version | Device                 | OS            | nav
 [!--lang:*-->
 
 [MIT](LICENSE)
-

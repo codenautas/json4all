@@ -40,7 +40,7 @@ describe("---- TYPESCRIPT Referenceable objects", ()=>{
         assert.equal(mySpace.TheCollection, collection);
         assert.deepEqual(
             // @ts-expect-error RefKey no es parte del objeto original
-            collection.one[JSON4all.RefKey], 
+            collection.one[JSON4all.RefKey],
             [['TheCollection'],'one']
         );
     });
@@ -178,7 +178,7 @@ describe("decorators and references", ()=>{
         threes.x3 = three;
         assert.deepEqual(
             // @ts-expect-error RefKey es interna
-            three[JSON4all.RefKey], 
+            three[JSON4all.RefKey],
             [['Threes'],'x3']
         )
         assert.equal(threes.x3, three);
@@ -195,7 +195,7 @@ describe("decorators and references", ()=>{
         assert.equal(str, `{"$special":"Three","$value":{"id":"ID4","name":"Referenced Name","age":0},"$ref":[["Threes"],"x3"]}`);
         assert.deepEqual(
             // @ts-expect-error RefKey es interna
-            three[JSON4all.RefKey], 
+            three[JSON4all.RefKey],
             [['Threes'],'x3']
         )
     })
@@ -208,7 +208,7 @@ describe("decorators and references", ()=>{
         assert.equal(str, `{"$special":"Three","$value":{"id":"ID4","name":"Referenced Name","age":0},"$ref":[["Threes"],"x3"]}`);
         assert.deepEqual(
             // @ts-expect-error RefKey es interna
-            three[JSON4all.RefKey], 
+            three[JSON4all.RefKey],
             [['Threes'],'x3']
         )
     })
@@ -216,14 +216,14 @@ describe("decorators and references", ()=>{
 
 describe("decorators and references in ClientSide", ()=>{
     before(()=>{
-        // @ts-expect-error quito el ref como si nunca lo hubiera tenido. 
-        JSON4all.RefStoreSpace(undefined); 
+        // @ts-expect-error quito el ref como si nunca lo hubiera tenido.
+        JSON4all.RefStoreSpace(undefined);
     })
     after(()=>{
         // @ts-expect-error global
         if(!global.mySpace){ throw new Error('No existe mySpace')}
         // @ts-expect-error global
-        JSON4all.RefStoreSpace(global.mySpace); 
+        JSON4all.RefStoreSpace(global.mySpace);
     })
     it("deserializa a registered object in clientSide", ()=>{
         var strFromServer = `{"$special":"Three","$value":{"id":"ID4","name":"Referenced Name","age":0},"$ref":[["Threes"],"x3"]}`
@@ -232,7 +232,7 @@ describe("decorators and references in ClientSide", ()=>{
         assert.equal(str, `{"$special":"Three","$ref":[["Threes"],"x3"]}`);
         assert.deepEqual(
             // @ts-expect-error RefKey es interna
-            three[JSON4all.RefKey], 
+            three[JSON4all.RefKey],
             [['Threes'],'x3']
         )
     })

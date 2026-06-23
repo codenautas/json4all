@@ -4,10 +4,10 @@ node_js:
   - "16"
 matrix:
   fast_finish: true
-script: 
+script:
   - npm test
   - npm run-script test-nyc
-after_script: 
+after_script:
   - ls -cal
   - ls -cal ./coverage
   - npm install coveralls@2.11.9

@@ -55,7 +55,7 @@ module.exports = function(config, preConfig) {
         type : 'json',
         dir : 'coverage/'
     }:{
-        type: 'lcov', 
+        type: 'lcov',
         dir: 'coverage/'
     },
     // */
@@ -93,7 +93,7 @@ module.exports = function(config, preConfig) {
     npm run infinito -- --browsers Firefox,Safari,Chrome
     npm run infinito -- --browsers Firefox,Safari,Chrome,IE
     */
-    
+
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
     singleRun: !!process.env.TRAVIS || !!process.env.SINGLE_RUN || preConfig.singleRun
