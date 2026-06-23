@@ -8,7 +8,8 @@
   "main": "json4all.js",
   "types": "json4all.d.ts",
   "files": [
-    "json4all.*"
+    "json4all.js",
+    "json4all.d.ts"
   ],
   "overrides": {
     "diff": ">=8.0.2",
@@ -37,6 +38,7 @@
     "karma-mocha": "^2.0.1",
     "mocha": "^11.7.6",
     "nyc": "^18.0.0",
+    "qa-control": "^0.6.16",
     "require-bro": "^0.3.5",
     "type-store": "^0.4.12",
     "typescript": "^5.9.3"
