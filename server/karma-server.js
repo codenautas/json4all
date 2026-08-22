@@ -14,8 +14,8 @@ var path = require('path');
 var karma;
 var karmaIndex=process.argv.indexOf('--karma');
 if(karmaIndex>0){
-    var karma = require('karma');
-    var karmaConfig = require('../karma.conf.js');
+    karma = require('karma'); // eslint-disable-line global-require
+    var karmaConfig = require('../karma.conf.js'); // eslint-disable-line global-require
     var options;
     karmaConfig({set:function(opts){
         options=opts;
@@ -27,7 +27,7 @@ if(karmaIndex>0){
     console.log('karma starting');
     var karmaServer = new karma.Server(options, function(exitCode) {
         console.log('Karma has exited with ' + exitCode);
-        process.exit(exitCode);
+        process.exit(exitCode); // eslint-disable-line no-process-exit
     })
     karmaServer.start();
     console.log('karma starting',options.port);

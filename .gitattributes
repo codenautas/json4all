@@ -1,3 +1,4 @@
 # Normalize to LF in the repo on commit; check out with the OS-native EOL.
 * text=auto
 
+test/js/test-decorators.js text eol=lf

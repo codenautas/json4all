@@ -21,7 +21,7 @@ var runningInBrowser = typeof window !== 'undefined';
 if(runningInBrowser){
     deepEqual = function(){};
 }else{
-    deepEqual = require('assert').deepStrictEqual;
+    deepEqual = require('assert').deepStrictEqual; // eslint-disable-line no-constant-condition
     if(!deepEqual){
         deepEqual = function(){};
     }
@@ -40,22 +40,22 @@ function compareObjects(obtained, expected, fixture, skipDeepEqual){
             compareObjects(obtained,expected, null, skipDeepEqual);
         }catch(err){
             try{
-                if(fixture.expected2 && false){
+                if(fixture.expected2 && false){ // eslint-disable-line no-constant-condition
                     expected=fixture.expected2;
                     compareObjects(obtained,expected);
                 }else{
                     throw err;
                 }
-            }catch(err){
+            }catch(err2){
                 try{
                     var obtainedPart=obtained [1];
                     var expectedPart=expected[1];
                     compareObjects(obtainedPart,expectedPart);
                     console.log('--partes iguales');
-                }catch(err){
-                    console.log('--partes distintas',obtainedPart,expectedPart,obtainedPart==expectedPart,obtainedPart===expectedPart,typeof obtainedPart,typeof expectedPart);
+                }catch{
+                    console.log('--partes distintas',obtainedPart,expectedPart,obtainedPart==expectedPart,obtainedPart===expectedPart,typeof obtainedPart,typeof expectedPart); // eslint-disable-line eqeqeq
                 }
-                throw err;
+                throw err2;
             }
         }
     }
@@ -219,14 +219,14 @@ describe("JSON4all",function(){
             } else if (fixture.expectedV2 !== false) {
                 compareObjects(encodedV2, encoded, fixture, fixture.skipDeepEqual);
             }
-            var decoded = JSON4all.parse(encodedV2);
-            compareObjects(decoded, expected, fixture, fixture.skipDeepEqual);
+            var decoded2 = JSON4all.parse(encodedV2);
+            compareObjects(decoded2, expected, fixture, fixture.skipDeepEqual);
             if('check' in fixture){
-                expect(fixture.check(decoded)).to.ok();
+                expect(fixture.check(decoded2)).to.ok();
             }
             if (fixture.alterV2) {
-                decoded = JSON4all.parse(fixture.alterV2);
-                compareObjects(decoded, expected, fixture, fixture.skipDeepEqual);
+                decoded2 = JSON4all.parse(fixture.alterV2);
+                compareObjects(decoded2, expected, fixture, fixture.skipDeepEqual);
             }
             // double encoding:
             compareObjects(JSON4all.parse(JSON4all.parse(JSON4all.stringify(encoded))), expected, fixture, fixture.skipDeepEqual);
@@ -356,13 +356,14 @@ describe("addType", function(){
             {text: "10:30", o:{hours: 10, minutes:30}, expectedV2: `!@ExampleClass,hours:10,minutes:30`},
         ].forEach(function(fixture){
             it("handles interval "+fixture.text, function(){
+                var interval;
                 if(ExampleClass["4client"]){
-                    var interval = new ExampleClass();
+                    interval = new ExampleClass();
                     for(var attr in fixture.o){
                         interval[attr] = fixture.o[attr];
                     }
                 }else{
-                    var interval = ExampleClass(fixture.text);
+                    interval = ExampleClass(fixture.text);
                 }
                 var intervalJson = JSON4all.stringify(interval);
                 if(fixture.expectedJson){
@@ -372,11 +373,11 @@ describe("addType", function(){
                 expect(resurrected).to.eql(interval);
                 expect(resurrected instanceof interval.constructor);
                 if(fixture.expectedV2){
-                    var intervalJson = JSON4all.toUrl(interval);
-                    expect(intervalJson).to.eql(fixture.expectedV2);
-                    var resurrected = JSON4all.parse(intervalJson);
-                    expect(resurrected).to.eql(interval);
-                    expect(resurrected instanceof interval.constructor);
+                    var intervalJson2 = JSON4all.toUrl(interval);
+                    expect(intervalJson2).to.eql(fixture.expectedV2);
+                    var resurrected2 = JSON4all.parse(intervalJson2);
+                    expect(resurrected2).to.eql(interval);
+                    expect(resurrected2 instanceof interval.constructor);
                 }
             });
         });

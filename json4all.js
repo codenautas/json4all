@@ -17,7 +17,7 @@
         root[root.globalModuleName] = factory();
     }
     root.globalModuleName = null;
-})(/*jshint -W040 */this, 'json4all', function() {
+})(this, 'json4all', function() { // eslint-disable-line max-statements
 /*jshint +W040 */
 
 /*jshint -W004 */
@@ -106,7 +106,7 @@ json4all.nonymizate = function(plainValue, Constructor){
     return typedValue;
 };
 
-json4all.replacer = function replacer(key, value){
+json4all.replacer = function replacer(key, value){ // eslint-disable-line complexity, max-statements
     var realValue = this[key];
     /* istanbul ignore next */ // For IE compatibility
     if(realValue===InternalValueForUndefined){
@@ -157,7 +157,7 @@ json4all.replacer = function replacer(key, value){
     }
 };
 
-json4all.reviver = function reviver(key, plainValue){
+json4all.reviver = function reviver(key, plainValue){ // eslint-disable-line complexity
     var log=false;
     var result;
     if(key==='$escape'){
@@ -248,7 +248,7 @@ json4all.mesureString = function mesureString(value){
     for (var char of value) {
         var channel = SEPARATOR[char];
         if (channel) {
-            if (currentSeparator != char) {
+            if (currentSeparator !== char) {
                 currentLength = 0
                 currentSeparator = char
             }
@@ -280,7 +280,7 @@ json4all.toUrlLines = function toUrlLines(value, eol){
 
 var repeat = (str, count) => Array.prototype.concat(new Array(count +1)).join(str);
 
-json4all.toUrlConstruct = function toUrlConstruct(value, addEol){
+json4all.toUrlConstruct = function toUrlConstruct(value, addEol){ // eslint-disable-line complexity, max-statements
     if(value === null) return simpleValue("null");
     if(value === undefined) return simpleValue("!undefined");
     if(value instanceof Function) return simpleValue("!unset");
@@ -309,19 +309,20 @@ json4all.toUrlConstruct = function toUrlConstruct(value, addEol){
             var result = simpleValue(null);
             var cantSimplify = false;
             var max = maxConsumer();
-            if (thisChannel == 'array') {
+            var pair;
+            if (thisChannel === 'array') {
                 for (var i = 0; i < value.length; i++) {
-                    var pair = [max(json4all.toUrlConstruct(value[i]))]
+                    pair = [max(json4all.toUrlConstruct(value[i]))]
                     parts.push(pair);
                 }
             } else {
                 for (var attr in value) {
-                    var pair = [max(json4all.quoteString(attr, true)), max(json4all.toUrlConstruct(value[attr]))]
+                    pair = [max(json4all.quoteString(attr, true)), max(json4all.toUrlConstruct(value[attr]))]
                     parts.push(pair);
                 }
             }
             for (var channel in CHANNEL) {
-                result[channel] = (max[channel] || 0) + (channel == thisChannel ? 1 : 0);
+                result[channel] = (max[channel] || 0) + (channel == thisChannel ? 1 : 0); // eslint-disable-line eqeqeq
             }
             var PairSep = ':'
             var lengthSep = result[thisChannel];
@@ -360,28 +361,30 @@ json4all.isTesting = true;
 
 json4all.getPlainObject = function getPlainObject(payload, separator, initial, PairSep){
     var i = 0;
+    var ListSep
     if (separator instanceof RegExp) {
-        var ListSep = separator;
+        ListSep = separator;
     } else {
-        var ListSep = '';
+        ListSep = '';
         while (i < payload.length && payload[i] === separator) { i++; ListSep += separator }
     }
     var result = initial
     var parts = payload.split(ListSep).slice(1);
     var index = -1;
+    var value;
     for (var part of parts) {
         if (PairSep) {
             var pos = part.indexOf(PairSep);
             if (pos < 0) {
                 throw new Error('JSON4all.parse error. Lack of colon "' + PairSep + '" in object');
             }
-            var value = part.substr(pos + PairSep.length);
-            var index = json4all.parse(part.substr(0, pos));
+            value = part.substr(pos + PairSep.length);
+            index = json4all.parse(part.substr(0, pos));
         } else {
-            var value = part;
+            value = part;
             index ++;
         }
-        var value = json4all.parse(value, true);
+        value = json4all.parse(value, true);
         if (value !== InternalValueForUnset) {
             result[index] = value
         }
@@ -389,33 +392,34 @@ json4all.getPlainObject = function getPlainObject(payload, separator, initial, P
     return result;
 }
 
-json4all.parse = function parse(text, inner){
+json4all.parse = function parse(text, inner){ // eslint-disable-line complexity, max-statements
     var payload = text[0] === STAR ? text.substr(1) : text;
+    var typeDef;
     if (payload[0] === BANG) {
         payload = payload.substr(1);
         if (payload === 'undefined') return undefined;
         if (payload === 'unset') {
             return inner ? InternalValueForUnset : undefined;
         }
-        if (payload[0] == '@') {
+        if (payload[0] === '@') {
             var commaPosition = payload.indexOf(',');
             var className = payload.substr(1, commaPosition - 1);
-            var typeDef = types[className];
+            typeDef = types[className];
             if (!typeDef) {
                 throw new Error('JSON4all.parse unrecognize className ' + className);
             }
             return typeDef.deserialize(payload).value;
         }
-        if (payload[0] == '/') {
-            var typeDef = types.RegExp;
+        if (payload[0] === '/') {
+            typeDef = types.RegExp;
             return typeDef.deserialize(payload).value;
         }
-        if (payload.substr(0,8) == 'json4all') {
+        if (payload.substr(0,8) === 'json4all') {
             var iSeparator = SEPARATOR[payload[8]];
             if (iSeparator) {
                 var channel = CHANNEL[iSeparator];
                 if (channel) {
-                    var eol = payload[9] == '\r' && payload[10] == '\n' ? '\r\n' : payload[9] == '\n' ? '\n' : null;
+                    var eol = payload[9] === '\r' && payload[10] === '\n' ? '\r\n' : payload[9] === '\n' ? '\n' : null;
                     if (eol) {
                         return json4all.getPlainObject(payload.substr(8 + eol.length), /\r?\n/, channel.empty(), channel.pairSeparator);
                     }
@@ -425,11 +429,11 @@ json4all.parse = function parse(text, inner){
         throw new Error('JSON4all.parse unrecognize ! token')
     }
     if (SEPARATOR[payload[0]]) {
-        var channel = CHANNEL[SEPARATOR[payload[0]]];
+        channel = CHANNEL[SEPARATOR[payload[0]]];
         return json4all.getPlainObject(payload, channel.separator, channel.empty(), channel.pairSeparator);
     }
     for (var typeName in types) {
-        var typeDef = types[typeName];
+        typeDef = types[typeName];
         var okDetected = null;
         /* istanbul ignore next */
         if(!typeDef.deserialize){
@@ -583,7 +587,7 @@ json4all.RefStore = (path)=>{
                 value[RefKey] = [path, prop];
             }else if(
                 // @ts-expect-error RefKey no está en el tipo original
-                value[RefKey][1] != prop
+                value[RefKey][1] != prop // eslint-disable-line eqeqeq
             ){
                 console.log("This value was stored in another place", path, prop)
                 throw new Error("This value was stored in another place")
