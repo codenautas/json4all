@@ -9,8 +9,6 @@ var ExampleClass = ExampleClass = require('./example-class.js');
 var bestGlobals = require('best-globals');
 const { strict:assert  } = require('assert');
 const json4all = require('../../json4all.js');
-const { json } = require('body-parser');
-const { Console } = require('console');
 var date = bestGlobals.date;
 var datetime = bestGlobals.datetime;
 

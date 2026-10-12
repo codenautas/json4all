@@ -12,7 +12,6 @@ JSON for all purposes and all platforms
 [![downloads](https://img.shields.io/npm/dm/json4all.svg)](https://npmjs.org/package/json4all)
 [![build](https://github.com/codenautas/json4all/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/codenautas/json4all/actions/workflows/build-and-test.yml)
 [![coverage](https://img.shields.io/coveralls/codenautas/json4all/master.svg)](https://coveralls.io/r/codenautas/json4all)
-[![security](https://socket.dev/api/badge/npm/package/json4all)](https://socket.dev/npm/package/json4all)
 [![qa-control](https://github.com/codenautas/json4all/actions/workflows/qa-control.yml/badge.svg)](https://github.com/codenautas/json4all/actions/workflows/qa-control.yml)
 
 

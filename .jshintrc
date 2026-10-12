@@ -1,8 +1,0 @@
-{
-    "asi": false,
-    "forin": false,
-    "curly": true,
-    "strict": "global",
-    "eqnull": true,
-    "predef": [ "module", "exports", "console" ]
-}

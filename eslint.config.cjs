@@ -2,7 +2,7 @@
 
 module.exports = [
     {
-        ignores: ["dist/**", "test/js"]
+        ignores: ["dist/**", "test/js", "coverage/**", "local-*/**"]
     },
     {
         languageOptions: {
