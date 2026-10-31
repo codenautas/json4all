@@ -1,4 +1,4 @@
-import { strict as assert } from 'assert';
+import { strict as assert } from 'node:assert';
 import * as JSON4all from '../../json4all'
 
 class Two{

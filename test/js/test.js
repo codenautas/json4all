@@ -7,7 +7,7 @@ var JSON4all = require('../../json4all.js');
 var ExampleClass = ExampleClass = require('./example-class.js');
 
 var bestGlobals = require('best-globals');
-const { strict:assert  } = require('assert');
+const { strict:assert  } = require('assert'); // eslint-disable-line unicorn/prefer-node-protocol -- it also runs in the browser, where require-bro finds 'assert' as window.assert
 const json4all = require('../../json4all.js');
 var date = bestGlobals.date;
 var datetime = bestGlobals.datetime;
@@ -19,13 +19,13 @@ var runningInBrowser = typeof window !== 'undefined';
 if(runningInBrowser){
     deepEqual = function(){};
 }else{
-    deepEqual = require('assert').deepStrictEqual; // eslint-disable-line no-constant-condition
+    deepEqual = require('node:assert').deepStrictEqual; // eslint-disable-line no-constant-condition
     if(!deepEqual){
         deepEqual = function(){};
     }
 }
 
-function compareObjects(obtained, expected, fixture, skipDeepEqual){
+function compareObjects(obtained, expected, fixture, skipDeepEqual){ // eslint-disable-line sonarjs/cognitive-complexity
     if(!fixture){
         discrepances.showAndThrow(obtained,expected);
         expect(obtained).to.eql(expected);
@@ -38,16 +38,18 @@ function compareObjects(obtained, expected, fixture, skipDeepEqual){
             compareObjects(obtained,expected, null, skipDeepEqual);
         }catch(err){
             try{
-                if(fixture.expected2 && false){ // eslint-disable-line no-constant-condition
+                if(fixture.expected2 && false){ // eslint-disable-line no-constant-condition, sonarjs/no-redundant-boolean
                     expected=fixture.expected2;
                     compareObjects(obtained,expected);
                 }else{
                     throw err;
                 }
-            }catch(err2){
+            }catch(err2){ // eslint-disable-line unicorn/catch-error-name
+                var obtainedPart;
+                var expectedPart;
                 try{
-                    var obtainedPart=obtained [1];
-                    var expectedPart=expected[1];
+                    obtainedPart=obtained [1];
+                    expectedPart=expected[1];
                     compareObjects(obtainedPart,expectedPart);
                     console.log('--partes iguales');
                 }catch{
@@ -167,7 +169,7 @@ var fixtures=[
     },
     {name:'h1-JSON4all' ,value: {d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}},
         expectEncode: JSON.stringify({d:{$escape:{$special:'Date',$value:1456887600000}},u:{$escape:{$special:'undefined'}}}),
-        expectedV2:`,,d:,\"$special\":Date,\"$value\":1456887600000,,u:,\"$special\":undefined`,
+        expectedV2:`,,d:,"$special":Date,"$value":1456887600000,,u:,"$special":undefined`,
         /* expected2:runningInBrowser */
     },
     {name:'h2-JSON4all' ,value: {$escape:{d:{$special:'Date',$value:1456887600000},u:{$special:'undefined'}}},
@@ -185,7 +187,7 @@ var fixtures=[
     {name:'hack2EJSON',expectedV2:false,value: {$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}} },
     {name:'hack3EJSON',expectedV2:false,value: {$escape:{$escape:{$escape:{"$special":"Point","$value":{"x":1,"y":2,"z":3.3}}}}} },
     {name:'anonymous' ,value: data, expectedV2:`,one:1,alpha:"α"`, expected:{one:1, alpha:'α'} },
-    {name:'colon' ,value: {"a:b":{"b:c":"x:::j"}}, expectedV2:`,,"a\\u003ab":,"b\\u003ac":"x:::j"`},
+    {name:'colon' ,value: {"a:b":{"b:c":"x:::j"}}, expectedV2:String.raw`,,"a\u003ab":,"b\u003ac":"x:::j"`},
 ];
 
 describe("JSON4all",function(){
@@ -198,7 +200,6 @@ describe("JSON4all",function(){
         }
         if(fixture.skip) return;
         if(!forBestGlobals && fixture.bg) return;
-        var withError=false;
         it("fixture "+fixture.name+": "+JSON.stringify(fixture),function(){
             //if(runningInBrowser) { console.log("FIXTURE", fixture.name); }
             var encoded=JSON4all.stringify(fixture.value);
@@ -239,6 +240,7 @@ describe("JSON4all",function(){
 });
 
 function OtherClass(){
+    // empty: a class that is not registered in json4all
 }
 
 if(!runningInBrowser){
@@ -257,6 +259,34 @@ if(!runningInBrowser){
         });
     });
 }
+
+describe("parse with registered types", function(){
+    var registeredTypes = (runningInBrowser ? window : global).json4allRegisteredTypes;
+    it("rejects a value that more than one type deserializes", function(){
+        var acceptsTheValue = {deserialize: function(plainValue){ return {ok: plainValue === 'zz-ambiguous-value', value: plainValue}; }};
+        JSON4all.addType('ZzAmbiguousA', acceptsTheValue);
+        JSON4all.addType('ZzAmbiguousB', acceptsTheValue);
+        try{
+            expect(function(){
+                JSON4all.parse('zz-ambiguous-value');
+            }).to.throwError(/JSON4all.parse: more than one type deserializes the value/);
+        }finally{
+            delete registeredTypes.ZzAmbiguousA;
+            delete registeredTypes.ZzAmbiguousB;
+        }
+    });
+    it("uses the value of the first type that deserializes it when it is not testing", function(){
+        var isTesting = JSON4all.isTesting;
+        JSON4all.isTesting = false;
+        try{
+            var parsed = JSON4all.parse('2020-01-02T03:04:05.000Z');
+            expect(parsed).to.be.a(Date);
+            expect(parsed.toISOString()).to.be('2020-01-02T03:04:05.000Z');
+        }finally{
+            JSON4all.isTesting = isTesting;
+        }
+    });
+});
 
 describe("JSON4all error conditions",function(){
     it("rejects invalid $specials", function(){
@@ -378,7 +408,7 @@ describe("addType", function(){
                         interval[attr] = fixture.o[attr];
                     }
                 }else{
-                    interval = ExampleClass(fixture.text);
+                    interval = ExampleClass(fixture.text); // eslint-disable-line sonarjs/inconsistent-function-call -- this branch is for an ExampleClass that is a factory function
                 }
                 var intervalJson = JSON4all.stringify(interval);
                 if(fixture.expectedJson){

@@ -20,7 +20,9 @@
 })(/*jshint -W040 */this, 'ExampleClass', function() {
 /*jshint +W040 */
 
-function ExampleClass(){};
+function ExampleClass(){ // eslint-disable-line unicorn/consistent-function-scoping
+    // empty: the tests only need a class to register in json4all
+};
 
 ExampleClass["4client"]=true;
 
