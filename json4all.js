@@ -26,12 +26,12 @@ var json4all = {};
 
 json4all.PretendedClass = Symbol("Pretended Class");
 
-function functionName(fun) {
+function functionName(fun) { // eslint-disable-line unicorn/consistent-function-scoping
     /* istanbul ignore next */
     if('name' in fun){
         return fun.name;
     }else{
-        return fun.toString().replace(/^\s*function\s*([^(]*)\((.|\s)*$/i,'$1');
+        return fun.toString().replace(/^\s*function\s*([^(]*)\([\s\S]*$/i,'$1');
     }
 }
 
@@ -54,7 +54,7 @@ var types = root.json4allRegisteredTypes;
 var thisPlatformSkipsUndefinedInArrays = true;
 
 JSON.stringify([undefined],function(key, value){
-    if(key==='0'||key===0){
+    if(key==='0'||key===0){ // eslint-disable-line sonarjs/different-types-comparison -- older platforms passed the array index as a number
         thisPlatformSkipsUndefinedInArrays = false;
     }
     return value;
@@ -72,13 +72,13 @@ JSON.parse('{"3":"33"}',function(key, value){
 });
 
 /* istanbul ignore next */
-function InternalValueForUndefined(){
+function InternalValueForUndefined(){ // eslint-disable-line unicorn/consistent-function-scoping
     /* istanbul ignore next */
     throw new Error('this is not a function');
 }
 
 /* istanbul ignore next */
-function InternalValueForUnset(){
+function InternalValueForUnset(){ // eslint-disable-line unicorn/consistent-function-scoping
     /* istanbul ignore next */
     throw new Error('this is not a function');
 }
@@ -106,17 +106,17 @@ json4all.nonymizate = function(plainValue, Constructor){
     return typedValue;
 };
 
-json4all.replacer = function replacer(key, value){ // eslint-disable-line complexity, max-statements
+json4all.replacer = function replacer(key, value){ // eslint-disable-line complexity, max-statements, sonarjs/cognitive-complexity
     var realValue = this[key];
     /* istanbul ignore next */ // For IE compatibility
     if(realValue===InternalValueForUndefined){
         this[key]=undefined;
         return {$special: "undefined"};
     }
-    if(key!=='' && (!(key in this) || realValue!==null && realValue instanceof Function)){
+    if(key!=='' && (!(key in this) || typeof realValue === 'function')){
         return {$special: "unset"};
     }
-    if(realValue===undefined || typeof realValue === "undefined" || realValue!==null && realValue instanceof Function){
+    if(realValue===undefined || typeof realValue === "function"){
         return {$special: "undefined"};
     }
     if(realValue===null || typeof realValue!=='object' || key==='$escape'){
@@ -126,9 +126,9 @@ json4all.replacer = function replacer(key, value){ // eslint-disable-line comple
         return {$escape: realValue};
     }
     /* istanbul ignore next */ // For IE compatibility
-    if(thisPlatformSkipsUndefinedInArrays && realValue instanceof Array){
+    if(thisPlatformSkipsUndefinedInArrays && Array.isArray(realValue)){
         for(var i=0; i<realValue.length; i++){
-            if(typeof realValue[i] === 'undefined'){
+            if(realValue[i] === undefined){
                 realValue[i] = InternalValueForUndefined;
             }
         }
@@ -157,8 +157,7 @@ json4all.replacer = function replacer(key, value){ // eslint-disable-line comple
     }
 };
 
-json4all.reviver = function reviver(key, plainValue){ // eslint-disable-line complexity
-    var log=false;
+json4all.reviver = function reviver(key, plainValue){ // eslint-disable-line complexity, sonarjs/cognitive-complexity
     var result;
     if(key==='$escape'){
         return plainValue;
@@ -193,7 +192,7 @@ json4all.reviver = function reviver(key, plainValue){ // eslint-disable-line com
         return plainValue.$escape;
     }else{
         result = plainValue;
-        if(plainValue instanceof Object){
+        if(plainValue !== null && (typeof plainValue === 'object' || typeof plainValue === 'function')){
             for(var k in plainValue){
                 if(plainValue[k]===InternalValueForUndefined){
                     plainValue[k]=undefined;
@@ -201,15 +200,14 @@ json4all.reviver = function reviver(key, plainValue){ // eslint-disable-line com
             }
         }
     }
-    if(plainValue !=null && plainValue.$ref){
+    if(plainValue?.$ref){
         result[RefKey] = plainValue.$ref
     }
     return result;
 };
 
-var directRegExp = /^((null|true|false)$|[-\]\[{}".0-9])/;
+var directRegExp = /^((null|true|false)$|[-\][{}".0-9])/;
 var directStringRegExp  = /^[a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-][0-9a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-]{0,32}$/;
-var AttributeNameRegExp = /^[a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-][0-9a-zA-ZÑñáéíóúüÁÉÍÓÚÜ_@-]*($|,)/;
 
 json4all.stringifyAnyPlace = function stringifyAnyPlace(value){
     return JSON.stringify(value, json4all.replacer);
@@ -235,7 +233,7 @@ function maxConsumer(){
     return fun;
 }
 
-function simpleValue(value){
+function simpleValue(value){ // eslint-disable-line unicorn/consistent-function-scoping
     return {value: value, object:0, array:0}
 }
 
@@ -263,7 +261,7 @@ json4all.mesureString = function mesureString(value){
 
 json4all.quoteString = function quoteString(text, escapeColon){
     var value = directStringRegExp.test(text) && !directRegExp.test(text) ? text : JSON.stringify(text);
-    if (escapeColon) value = value.replace(/:/g,'\\u003a');
+    if (escapeColon) value = value.replaceAll(':',String.raw`\u003a`);
     return json4all.mesureString(value);
 }
 
@@ -275,15 +273,15 @@ json4all.toUrl = function toUrl(value){
 }
 
 json4all.toUrlLines = function toUrlLines(value, eol){
-    return json4all.toUrlConstruct(value, eol ? eol : '\n').value;
+    return json4all.toUrlConstruct(value, eol || '\n').value;
 }
 
-var repeat = (str, count) => Array.prototype.concat(new Array(count +1)).join(str);
+var repeat = (str, count) => Array.prototype.concat(new Array(count +1)).join(str); // eslint-disable-line unicorn/consistent-function-scoping
 
-json4all.toUrlConstruct = function toUrlConstruct(value, addEol){ // eslint-disable-line complexity, max-statements
+json4all.toUrlConstruct = function toUrlConstruct(value, addEol){ // eslint-disable-line complexity, max-statements, sonarjs/cognitive-complexity
     if(value === null) return simpleValue("null");
     if(value === undefined) return simpleValue("!undefined");
-    if(value instanceof Function) return simpleValue("!unset");
+    if(typeof value === "function") return simpleValue("!unset");
     var typeName = constructorName(value);
     if(typeof value === "string"){
         // if(value[0] === STAR){
@@ -304,15 +302,15 @@ json4all.toUrlConstruct = function toUrlConstruct(value, addEol){ // eslint-disa
                 throw new Error("JSON4all.stringify unregistered object type");
             }
         } else {
-            var thisChannel = value instanceof Array ? 'array' : 'object';
+            var thisChannel = Array.isArray(value) ? 'array' : 'object';
             var parts = []
             var result = simpleValue(null);
             var cantSimplify = false;
             var max = maxConsumer();
             var pair;
             if (thisChannel === 'array') {
-                for (var i = 0; i < value.length; i++) {
-                    pair = [max(json4all.toUrlConstruct(value[i]))]
+                for (var item of value) {
+                    pair = [max(json4all.toUrlConstruct(item))]
                     parts.push(pair);
                 }
             } else {
@@ -326,7 +324,7 @@ json4all.toUrlConstruct = function toUrlConstruct(value, addEol){ // eslint-disa
             }
             var PairSep = ':'
             var lengthSep = result[thisChannel];
-            var ListSep = addEol ? addEol : repeat(CHANNEL[thisChannel].separator, lengthSep);
+            var ListSep = addEol || repeat(CHANNEL[thisChannel].separator, lengthSep);
             result.value = (addEol ? '!json4all' + CHANNEL[thisChannel].separator : '') + ListSep + parts.map(pair=>pair.join(PairSep)).join(ListSep)
             if (!cantSimplify && parts.length){
                 return result;
@@ -339,13 +337,11 @@ json4all.toUrlConstruct = function toUrlConstruct(value, addEol){ // eslint-disa
 json4all.stringify = json4all.stringifyAnyPlace;
 
 json4all.convertPlain2$special = function convertPlain2$special(o, internally){
-    if(o!=null && o instanceof Object){
+    if(o!=null && (typeof o === 'object' || typeof o === 'function')){
         for(var key in o){
-            /* istanbul ignore next */
-            var realKey = o[key]===undefined && !isNaN(key)?Number(key):key;
             json4all.convertPlain2$special(o[key], true);
             var newValue = json4all.reviver(key, o[key]);
-            if(newValue===undefined && !(o instanceof Array)){
+            if(newValue===undefined && !Array.isArray(o)){
                 delete o[key];
             }else{
                 o[key] = newValue;
@@ -392,9 +388,10 @@ json4all.getPlainObject = function getPlainObject(payload, separator, initial, P
     return result;
 }
 
-json4all.parse = function parse(text, inner){ // eslint-disable-line complexity, max-statements
+json4all.parse = function parse(text, inner){ // eslint-disable-line complexity, max-statements, sonarjs/cognitive-complexity
     var payload = text[0] === STAR ? text.substr(1) : text;
     var typeDef;
+    var channel;
     if (payload[0] === BANG) {
         payload = payload.substr(1);
         if (payload === 'undefined') return undefined;
@@ -417,9 +414,9 @@ json4all.parse = function parse(text, inner){ // eslint-disable-line complexity,
         if (payload.substr(0,8) === 'json4all') {
             var iSeparator = SEPARATOR[payload[8]];
             if (iSeparator) {
-                var channel = CHANNEL[iSeparator];
+                channel = CHANNEL[iSeparator];
                 if (channel) {
-                    var eol = payload[9] === '\r' && payload[10] === '\n' ? '\r\n' : payload[9] === '\n' ? '\n' : null;
+                    var eol = payload[9] === '\r' && payload[10] === '\n' ? '\r\n' : payload[9] === '\n' ? '\n' : null; // eslint-disable-line sonarjs/no-nested-conditional
                     if (eol) {
                         return json4all.getPlainObject(payload.substr(8 + eol.length), /\r?\n/, channel.empty(), channel.pairSeparator);
                     }
@@ -432,21 +429,21 @@ json4all.parse = function parse(text, inner){ // eslint-disable-line complexity,
         channel = CHANNEL[SEPARATOR[payload[0]]];
         return json4all.getPlainObject(payload, channel.separator, channel.empty(), channel.pairSeparator);
     }
+    var okDetected = null;
+    var valueOk = null;
     for (var typeName in types) {
         typeDef = types[typeName];
-        var okDetected = null;
         /* istanbul ignore next */
         if(!typeDef.deserialize){
             throw new Error("JSON4all.parse type without deserialize: "+typeName)
         }
-        var valueOk = null;
         var {ok, value} = typeDef.deserialize(payload);
         if(ok){
             valueOk = value;
             if(json4all.isTesting){
                 if (okDetected) {
                     console.log("More than one way",typeName,okDetected,text,value,valueOk);
-                    throw Error("")
+                    throw new Error("JSON4all.parse: more than one type deserializes the value")
                 }
                 okDetected = typeName;
             }
@@ -613,7 +610,7 @@ json4all.addProperty = function(constructorPosition){
     if(typeof constructorPosition === "number"){
         return innerFunction
     }else{
-        return innerFunction.apply(null, arguments);
+        return innerFunction(...arguments);
     }
 }
 

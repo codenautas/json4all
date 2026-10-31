@@ -38,3 +38,6 @@ local-*
 *-local.*
 
 package-lock.json
+
+# Compiled from test/ts
+test/js/test-decorators.js

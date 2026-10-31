@@ -210,7 +210,7 @@ describe("JSON4all",function(){
             compareObjects(decoded, expected, fixture, fixture.skipDeepEqual);
             decoded=JSON.parse(encoded);
             decoded=JSON4all.convertPlain2$special(decoded);
-            compareObjects(decoded, expected, fixture, fixture, fixture.skipDeepEqual);
+            compareObjects(decoded, expected, fixture, fixture.skipDeepEqual);
             var encodedV2 = JSON4all.toUrl(fixture.value);
             if (fixture.expectedV2) {
                 compareObjects(encodedV2, fixture.expectedV2, fixture, fixture.skipDeepEqual);
@@ -239,6 +239,23 @@ describe("JSON4all",function(){
 });
 
 function OtherClass(){
+}
+
+if(!runningInBrowser){
+    describe("values from another realm (vm context)", function(){
+        var vm = require('vm');
+        var otherRealm = vm.createContext({});
+        it("serializes an array from another realm as an array", function(){
+            var otherArray = vm.runInContext('[1, "two", 3]', otherRealm);
+            assert.equal(JSON4all.stringify(otherArray), JSON4all.stringify([1, "two", 3]));
+            assert.equal(JSON4all.toUrl(otherArray), JSON4all.toUrl([1, "two", 3]));
+        });
+        it("serializes a function from another realm as unset", function(){
+            var otherObject = vm.runInContext('({a:1, f:function(){}})', otherRealm);
+            assert.equal(JSON4all.stringify(otherObject), JSON4all.stringify({a:1, f:function(){}}));
+            assert.equal(JSON4all.toUrl(otherObject), JSON4all.toUrl({a:1, f:function(){}}));
+        });
+    });
 }
 
 describe("JSON4all error conditions",function(){

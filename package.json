@@ -24,6 +24,8 @@
     "@types/node": "^26.6.5",
     "best-globals": "^2.2.3",
     "discrepances": "^0.3.2",
+    "eslint-plugin-sonarjs": "^4.2.2",
+    "eslint-plugin-unicorn": "^79.0.0",
     "expect.js": "^0.3.1",
     "mocha": "^12.0.3",
     "nyc": "^18.0.0",
@@ -33,7 +35,7 @@
     "typescript": "^5.9.3"
   },
   "engines": {
-    "node": ">= 12"
+    "node": ">= 22"
   },
   "nyc": {
     "reporter": [
@@ -42,11 +44,12 @@
     ]
   },
   "scripts": {
-    "test1": "tsc -p test/ts && mocha --reporter spec --bail --recursive --check-leaks test/**/test.js",
-    "test": "tsc -p test/ts && mocha --reporter spec --bail --recursive --check-leaks test/**/test*.js",
+    "build": "tsc -p test/ts",
+    "test1": "mocha --reporter spec --bail --recursive --check-leaks test/**/test.js",
+    "test": "mocha --reporter spec --bail --recursive --check-leaks test/**/test*.js",
     "test-nc": "mocha --reporter spec --bail --check-leaks --no-colors test/",
     "test-ci": "nyc --silent mocha --reporter spec --check-leaks test/**/test*.js && npm run test-navigator && nyc report",
-    "test-cov": "tsc -p test/ts && nyc mocha --reporter dot --recursive --check-leaks test/**/test*.js",
+    "test-cov": "nyc mocha --reporter dot --recursive --check-leaks test/**/test*.js",
     "test-nyc": "nyc npm run test",
     "start": "node example/server.js",
     "build-test": "nyc instrument --delete json4all.js local-instrumented",
