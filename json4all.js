@@ -192,7 +192,7 @@ json4all.reviver = function reviver(key, plainValue){ // eslint-disable-line com
         return plainValue.$escape;
     }else{
         result = plainValue;
-        if(plainValue !== null && (typeof plainValue === 'object' || typeof plainValue === 'function')){
+        if(plainValue !== null && typeof plainValue === 'object'){
             for(var k in plainValue){
                 if(plainValue[k]===InternalValueForUndefined){
                     plainValue[k]=undefined;
@@ -439,15 +439,15 @@ json4all.parse = function parse(text, inner){ // eslint-disable-line complexity,
         }
         var {ok, value} = typeDef.deserialize(payload);
         if(ok){
-            valueOk = value;
-            if(json4all.isTesting){
-                if (okDetected) {
-                    console.log("More than one way",typeName,okDetected,text,value,valueOk);
-                    throw new Error("JSON4all.parse: more than one type deserializes the value")
-                }
-                okDetected = typeName;
+            if (okDetected) {
+                console.log("More than one way",typeName,okDetected,text,value,valueOk);
+                throw new Error("JSON4all.parse: more than one type deserializes the value")
             }
-            break;
+            okDetected = typeName;
+            valueOk = value;
+            if(!json4all.isTesting){
+                break;
+            }
         }
     }
     if (okDetected) return valueOk;

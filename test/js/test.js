@@ -243,15 +243,15 @@ function OtherClass(){
 
 if(!runningInBrowser){
     describe("values from another realm (vm context)", function(){
-        var vm = require('vm');
+        var vm = require('node:vm');
         var otherRealm = vm.createContext({});
         it("serializes an array from another realm as an array", function(){
-            var otherArray = vm.runInContext('[1, "two", 3]', otherRealm);
+            var otherArray = vm.runInContext('[1, "two", 3]', otherRealm); // eslint-disable-line sonarjs/code-eval -- constant source written in this test to create values in another realm
             assert.equal(JSON4all.stringify(otherArray), JSON4all.stringify([1, "two", 3]));
             assert.equal(JSON4all.toUrl(otherArray), JSON4all.toUrl([1, "two", 3]));
         });
         it("serializes a function from another realm as unset", function(){
-            var otherObject = vm.runInContext('({a:1, f:function(){}})', otherRealm);
+            var otherObject = vm.runInContext('({a:1, f:function(){}})', otherRealm); // eslint-disable-line sonarjs/code-eval -- constant source written in this test to create values in another realm
             assert.equal(JSON4all.stringify(otherObject), JSON4all.stringify({a:1, f:function(){}}));
             assert.equal(JSON4all.toUrl(otherObject), JSON4all.toUrl({a:1, f:function(){}}));
         });
