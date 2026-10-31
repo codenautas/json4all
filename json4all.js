@@ -31,7 +31,7 @@ function functionName(fun) { // eslint-disable-line unicorn/consistent-function-
     if('name' in fun){
         return fun.name;
     }else{
-        return fun.toString().replace(/^\s*function\s*([^(]*)\([\s\S]*$/i,'$1');
+        return fun.toString().replace(/^\s*function\s*([^(\s][^(]*|)\([\s\S]*$/i,'$1');
     }
 }
 

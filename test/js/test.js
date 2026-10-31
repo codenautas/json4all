@@ -138,7 +138,7 @@ var fixtures=[
     {bg:true, name:'{fech}',value: {a:1, f:date.ymd(2016,2,2)}, expectedV2:`,a:1,f:2016-02-02`, check:function(o){ return o.f.isRealDate; }, skipDeepEqual:true},
     {bg:true, name:'datetime',value: datetime.iso("1999-12-31"), expectedV2:`1999-12-31 00:00`, expectEncode: '{"$special":"Datetime","$value":"1999-12-31"}', check:function(o){ return o instanceof bestGlobals.Datetime; }},
     {bg:true, name:'{datetime}',value: {a:1, f:datetime.ymdHms(2016,2,2,12,1,2)}, expectedV2:`,a:1,f:2016-02-02 12:01:02`, check:function(o){ return o.f instanceof bestGlobals.Datetime; }},
-    {name:'bigNumber' ,value: 12345678901234567890         , expectedV2:`12345678901234567000`},
+    {name:'bigNumber' ,value: 12345678901234567890         , expectedV2:`12345678901234567000`}, // eslint-disable-line no-loss-of-precision -- the test checks how a number that loses precision is serialized
     {name:'"true"'    ,value: "true"                       , expectedV2:`"true"`},
     {name:'bool'      ,value: true                         , expectedV2:`true`},
     {name:'null'      ,value: null                         , expectedV2:`null`},
