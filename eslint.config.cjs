@@ -1,5 +1,6 @@
 "use strict";
 
+const tseslint = require("typescript-eslint");
 const sonarjs = require("eslint-plugin-sonarjs");
 // eslint-plugin-unicorn is ESM only: require() returns the module namespace and the plugin is its default export
 const unicorn = require("eslint-plugin-unicorn").default;
@@ -216,6 +217,38 @@ module.exports = [
             "prefer-spread": 0,
             "prefer-template": 0,
             "require-yield": 0
+        }
+    },
+    {
+        files: ["**/*.ts", "**/*.mts", "**/*.cts"],
+        languageOptions: {
+            parser: tseslint.parser,
+            parserOptions: {
+                projectService: {
+                    allowDefaultProject: ["json4all.d.ts"]
+                },
+                tsconfigRootDir: __dirname
+            },
+            sourceType: "module"
+        },
+        plugins: {
+            "@typescript-eslint": tseslint.plugin
+        },
+        rules: {
+            // JavaScript rules with false positives in TypeScript
+            "no-redeclare": 0,
+            "no-unused-expressions": 0,
+            "strict": 0,
+            "@typescript-eslint/no-unused-expressions": 2,
+
+            // Types and promises
+            "@typescript-eslint/no-explicit-any": 2,
+            "@typescript-eslint/no-floating-promises": 2,
+            "@typescript-eslint/promise-function-async": 2,
+            "@typescript-eslint/await-thenable": 2,
+            "@typescript-eslint/require-await": 2,
+            "@typescript-eslint/return-await": 2,
+            "@typescript-eslint/no-misused-promises": 2
         }
     }
 ];

@@ -33,7 +33,7 @@ describe("---- TYPESCRIPT Referenceable objects", ()=>{
     // @ts-expect-error global
     if(!global.mySpace){ global.mySpace = {}; JSON4all.RefStoreSpace(global.mySpace); }
     // @ts-expect-error global
-    var mySpace:any = global.mySpace;
+    var mySpace:Record<string, unknown> = global.mySpace;
     var collection = JSON4all.RefStore<string, Two|object>(['TheCollection']);
     it("adds element to collection", ()=>{
         collection.one = {name:'the name'};
@@ -142,7 +142,7 @@ describe("decorators", ()=>{
         assert.deepEqual(str, str2);
     })
     it("serialize a anonymous object like a registered one", ()=>{
-        var threeLike:any = {
+        var threeLike = {
             id: "ID3",
             age: 4,
             other: "do not pass this"

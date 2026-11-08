@@ -5,9 +5,9 @@ declare namespace json4all{
         specialTag?:<T>(object:T)=>string
     }
     function parse<T>(jsonText:string):T
-    function stringify(object:any):string
-    function toUrl(object:any):string
-    function toUrlLines(object:any, eol?:string):string
+    function stringify(object:unknown):string
+    function toUrl(object:unknown):string
+    function toUrlLines(object:unknown, eol?:string):string
     function addType(className:string, functions:AddTypeFunctions, skipIfExists?:boolean):void
     function addType(constructor:Function, functions?:AddTypeFunctions, skipIfExists?:boolean):void
     function anonymizate<T>(classedObject:T):object
